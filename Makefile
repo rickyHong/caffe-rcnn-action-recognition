@@ -1,4 +1,5 @@
 PROJECT := caffe
+API := api
 
 CONFIG_FILE := Makefile.config
 # Explicitly check for the config file, otherwise make -k will proceed anyway.
@@ -45,9 +46,9 @@ COMMON_FLAGS += -DCAFFE_VERSION=$(DYNAMIC_VERSION_MAJOR).$(DYNAMIC_VERSION_MINOR
 # Get all source files
 ##############################
 # CXX_SRCS are the source files excluding the test ones.
-CXX_SRCS := $(shell find src/$(PROJECT) ! -name "test_*.cpp" -name "*.cpp")
+CXX_SRCS := $(shell find src/$(PROJECT) src/$(API) ! -name "test_*.cpp" -name "*.cpp")
 # CU_SRCS are the cuda source files
-CU_SRCS := $(shell find src/$(PROJECT) ! -name "test_*.cu" -name "*.cu")
+CU_SRCS := $(shell find src/$(PROJECT) src/$(API) ! -name "test_*.cu" -name "*.cu")
 # TEST_SRCS are the test source files
 TEST_MAIN_SRC := src/$(PROJECT)/test/test_caffe_main.cpp
 TEST_SRCS := $(shell find src/$(PROJECT) -name "test_*.cpp")
@@ -402,11 +403,21 @@ CXXFLAGS += -MMD -MP
 
 # Complete build flags.
 COMMON_FLAGS += $(foreach includedir,$(INCLUDE_DIRS),-I$(includedir))
+### Add For Remove clang: warning: argument unused during compilation: '-pthread'
+ifeq ($(OSX), 1)
+CXXFLAGS += -fPIC $(COMMON_FLAGS) $(WARNINGS)
+else
 CXXFLAGS += -pthread -fPIC $(COMMON_FLAGS) $(WARNINGS)
+endif
 NVCCFLAGS += -ccbin=$(CXX) -Xcompiler -fPIC $(COMMON_FLAGS)
 # mex may invoke an older gcc that is too liberal with -Wuninitalized
 MATLAB_CXXFLAGS := $(CXXFLAGS) -Wno-uninitialized
+### Add For Remove clang: warning: argument unused during compilation: '-pthread'
+ifeq ($(OSX), 1)
+LINKFLAGS += -fPIC $(COMMON_FLAGS) $(WARNINGS)
+else
 LINKFLAGS += -pthread -fPIC $(COMMON_FLAGS) $(WARNINGS)
+endif
 
 USE_PKG_CONFIG ?= 0
 ifeq ($(USE_PKG_CONFIG), 1)

@@ -8,6 +8,7 @@
 #include "caffe/util/hdf5.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/upgrade_proto.hpp"
+#include "caffe/util/benchmark.hpp"
 
 namespace caffe {
 
@@ -192,6 +193,8 @@ void Solver<Dtype>::InitTestNets() {
 
 template <typename Dtype>
 void Solver<Dtype>::Step(int iters) {
+  caffe::Timer time_for_count;
+  time_for_count.Start();
   const int start_iter = iter_;
   const int stop_iter = iter_ + iters;
   int average_loss = this->param_.average_loss();
@@ -226,7 +229,7 @@ void Solver<Dtype>::Step(int iters) {
     UpdateSmoothedLoss(loss, start_iter, average_loss);
     if (display) {
       LOG_IF(INFO, Caffe::root_solver()) << "Iteration " << iter_
-          << ", loss = " << smoothed_loss_;
+          << " / " << param_.max_iter() << ", loss = " << smoothed_loss_;
       const vector<Blob<Dtype>*>& result = net_->output_blobs();
       int score_index = 0;
       for (int j = 0; j < result.size(); ++j) {
@@ -245,6 +248,25 @@ void Solver<Dtype>::Step(int iters) {
               << score_index++ << ": " << output_name << " = "
               << result_vec[k] << loss_msg_stream.str();
         }
+      }
+      //Calculate time , only show in root solver 
+      if(Caffe::root_solver() ){
+        if( iter_ > 0 ){
+          float average_time = time_for_count.MilliSeconds() / param_.display() / 1000;
+          float remaining_time = average_time * (param_.max_iter() - iter_);
+          int remaining_hour = floor(remaining_time / 3600);
+          int remaining_min = round(remaining_time / 60 - remaining_hour * 60);
+          
+          LOG(INFO) << "Speed: "
+                    << average_time
+                    << " s / iter."
+                    << "  "
+                    << remaining_hour
+                    << ":"
+                    << remaining_min
+                    << " (Hours:Mins) to go.";
+        }
+        time_for_count.Start();
       }
     }
     for (int i = 0; i < callbacks_.size(); ++i) {

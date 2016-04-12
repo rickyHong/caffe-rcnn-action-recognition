@@ -1,3 +1,36 @@
+# Special Feature for My Caffe 
+
+- Clone from the official caffe, will continuely be up to date by the official caffe code
+- Add faster rcnn joint train and test \[DONE\]
+- Add action recognition \[DONE\]
+- Add spatial transform network \[Not Started\]
+- Speed up\[DOING\]
+- With demos including all tasks above \^_\^
+
+## Faster RCNN End-To-End
+
+### Disclaimer
+The official Faster R-CNN code (written in MATLAB) is [available](https://github.com/ShaoqingRen/faster_rcnn) here. If your goal is to reproduce the results in our NIPS 2015 paper, please use the [official](https://github.com/ShaoqingRen/faster_rcnn) code.
+
+This repository contains a C++ reimplementation of the Python code([py-faster-rcnn](https://github.com/rbgirshick/py-faster-rcnn)). This C++ implementation is built on the offcial [caffe](https://github.com/BVLC/caffe), I will continue to update this code for improvement and up-to-date by offcial caffe.
+
+All following steps, you should do these in the $CAFFE\_ROOT path.
+
+### Demo
+Using **sh example/FRCNN/demo.sh**, the will process five pictures in the examples/FRCNN/images , and put results into examples/FRCNN/results .
+
+Note: You should prepare the trained caffemodel into models/FRCNN/ as ZF\_faster\_rcnn\_final.caffemodel
+
+### Train
+Using **sh example/FRCNN/train.sh**, the will start train voc2007 data using ZF model.
+
+- VOCdevkit should be put into $CAFFE\_ROOT, ** ln -s $YOUR\_VOCdevkit\_Path $CAFFE\_ROOT/VOCdevkit
+- ZF pretrain model should be put into models/FRCNN/ as ZF.v2.caffemodel
+
+### Detail
+
+More details in the code.
+
 # Caffe
 
 [![Build Status](https://travis-ci.org/BVLC/caffe.svg?branch=master)](https://travis-ci.org/BVLC/caffe)

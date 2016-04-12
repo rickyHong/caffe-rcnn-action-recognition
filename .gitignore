@@ -93,3 +93,7 @@ LOCK
 LOG*
 CURRENT
 MANIFEST-*
+
+#Xuanyi Add
+examples/FRCNN_OLD/result.jpg
+examples/*.log
