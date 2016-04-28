@@ -25,6 +25,13 @@ inline std::map<int,string> LoadVocClass(){
   return answer;
 }
 
+inline std::map<int,string> LoadRpnClass(){
+  std::map<int,string> answer;
+  answer[0] = "background";
+  answer[1] = "proposal";
+  return answer;
+}
+
 template <typename Dtype>
 void vis_detections(cv::Mat & frame, const std::vector<BBox<Dtype> >& ans, const std::map<int,std::string> CLASS); 
 

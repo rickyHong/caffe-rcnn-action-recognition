@@ -20,6 +20,9 @@ template <typename Dtype>
 void FrcnnProposalLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
   const vector<Blob<Dtype> *> &top) {
   top[0]->Reshape(1, 5, 1, 1);
+  if (top.size() > 1) {
+    top[1]->Reshape(1, 1, 1, 1);
+  }
 }
 
 template <typename Dtype>
@@ -57,8 +60,21 @@ void FrcnnProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   }
   const int config_n_anchors = FrcnnParam::anchors.size() / 4;
 
-  typedef pair<float, int> sort_pair;
+  typedef pair<Dtype, int> sort_pair;
   vector<sort_pair>  sort_vector;
+
+/*
+  DLOG(ERROR) << "This->Phase : " << (this->phase_==TRAIN?"Train":"Test");
+  DLOG(ERROR) << "rpn_pre_nms_top_n  : " << rpn_pre_nms_top_n;
+  DLOG(ERROR) << "rpn_post_nms_top_n : " << rpn_post_nms_top_n;
+  DLOG(ERROR) << "rpn_nms_thresh     : " << rpn_nms_thresh;
+  DLOG(ERROR) << "rpn_min_size       : " << rpn_min_size;
+  DLOG(ERROR) << "im_size :   (" << im_height << ", " << im_width << ")";
+  DLOG(ERROR) << "scale   :   " << bottom_im_info[2];  
+  DLOG(ERROR) << "scores SHAPE : " << bottom[0]->num() << ", " << bottom[0]->channels() << ", " << bottom[0]->height() << ", " << bottom[0]->width();
+  DLOG(ERROR) << "BBOX PRED SHAPE : " << bottom[1]->num() << ", " << bottom[1]->channels() << ", " << bottom[1]->height() << ", " << bottom[1]->width();
+  DLOG(ERROR) << "scores First : " << bottom_rpn_score[0] << ", " << bottom_rpn_score[1] << ", " << bottom_rpn_score[2] << ", " << bottom_rpn_score[3] << ", " << bottom_rpn_score[4] << ", " << bottom_rpn_score[5];
+*/
 
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < height; j++) {
@@ -123,6 +139,7 @@ void FrcnnProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   // apply nms
   DLOG(ERROR) << "========== apply nms";
   std::vector<Point4f<Dtype> > box_final;
+  std::vector<Dtype> scores_;
   for (int i = 0; i < n_anchors && box_final.size() < rpn_post_nms_top_n; i++) {
     if (select[i]) {
       for (int j = i + 1; j < n_anchors; j++)
@@ -132,6 +149,7 @@ void FrcnnProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
           }
         }
       box_final.push_back(anchors[i]);
+      scores_.push_back(sort_vector[i].first);
     }
   }
   DLOG(ERROR) << "rpn number after nms: " <<  box_final.size();
@@ -139,11 +157,18 @@ void FrcnnProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   DLOG(ERROR) << "========== copy to top";
   top[0]->Reshape(box_final.size(), 5, 1, 1);
   Dtype *top_data = top[0]->mutable_cpu_data();
-  for (int i = 0; i < box_final.size(); i++) {
+  for (size_t i = 0; i < box_final.size(); i++) {
     Point4f<Dtype> &box = box_final[i];
     top_data[i * 5] = 0;
     for (int j = 1; j < 5; j++) {
       top_data[i * 5 + j] = box[j - 1];
+    }
+  }
+
+  if (top.size() > 1) {
+    top[1]->Reshape(box_final.size(), 1, 1, 1);
+    for (size_t i = 0; i < box_final.size(); i++) {
+      top[1]->mutable_cpu_data()[i] = scores_[i];
     }
   }
 

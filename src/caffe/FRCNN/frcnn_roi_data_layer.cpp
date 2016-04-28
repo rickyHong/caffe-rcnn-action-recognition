@@ -269,7 +269,7 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
     for (int c = 0; c < src.cols; c++) {
       int cv_offset = (r * src.cols + c) * 3;
       int blob_shift = r * src.cols + c;
-      top_data[0 + blob_shift] = reinterpret_cast<float *>(src.data)[cv_offset + 0];
+      top_data[0 * src.rows * src.cols + blob_shift] = reinterpret_cast<float *>(src.data)[cv_offset + 0];
       top_data[1 * src.rows * src.cols + blob_shift] = reinterpret_cast<float *>(src.data)[cv_offset + 1];
       top_data[2 * src.rows * src.cols + blob_shift] = reinterpret_cast<float *>(src.data)[cv_offset + 2];
     }
