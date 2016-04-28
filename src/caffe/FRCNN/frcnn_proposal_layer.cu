@@ -6,10 +6,9 @@
 // ------------------------------------------------------------------
 
 #include "caffe/FRCNN/frcnn_proposal_layer.hpp"
-#include "caffe/FRCNN/util/frcnn_helper.hpp"
 #include "caffe/FRCNN/util/frcnn_utils.hpp"
-#include "caffe/FRCNN/util/frcnn_param.hpp"
-#include "caffe/FRCNN/util/frcnn_gpu_nms.hpp"
+#include "caffe/FRCNN/util/frcnn_helper.hpp"
+#include "caffe/FRCNN/util/frcnn_param.hpp"  
 
 namespace caffe {
 
@@ -19,11 +18,11 @@ using std::vector;
 
 template <typename Dtype>
 void FrcnnProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype> *> &bottom,
-    const vector<Blob<Dtype> *> &top) {
+                                            const vector<Blob<Dtype> *> &top) {
   DLOG(ERROR) << "========== enter proposal layer";
-  const Dtype *bottom_rpn_score = bottom[0]->cpu_data();
-  const Dtype *bottom_rpn_bbox = bottom[1]->cpu_data();
-  const Dtype *bottom_im_info = bottom[2]->cpu_data();
+  const Dtype *bottom_rpn_score = bottom[0]->cpu_data();  // rpn_cls_prob_reshape
+  const Dtype *bottom_rpn_bbox = bottom[1]->cpu_data();   // rpn_bbox_pred
+  const Dtype *bottom_im_info = bottom[2]->cpu_data();    // im_info
 
   const int num = bottom[1]->num();
   const int channes = bottom[1]->channels();
@@ -52,8 +51,21 @@ void FrcnnProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype> *> &bottom,
   }
   const int config_n_anchors = FrcnnParam::anchors.size() / 4;
 
-  typedef pair<float, int> score_idx_pair;
-  vector<score_idx_pair>  score_idx_vector;
+  typedef pair<Dtype, int> sort_pair;
+  vector<sort_pair>  sort_vector;
+
+/*
+  DLOG(ERROR) << "This->Phase : " << (this->phase_==TRAIN?"Train":"Test");
+  DLOG(ERROR) << "rpn_pre_nms_top_n  : " << rpn_pre_nms_top_n;
+  DLOG(ERROR) << "rpn_post_nms_top_n : " << rpn_post_nms_top_n;
+  DLOG(ERROR) << "rpn_nms_thresh     : " << rpn_nms_thresh;
+  DLOG(ERROR) << "rpn_min_size       : " << rpn_min_size;
+  DLOG(ERROR) << "im_size :   (" << im_height << ", " << im_width << ")";
+  DLOG(ERROR) << "scale   :   " << bottom_im_info[2];  
+  DLOG(ERROR) << "scores SHAPE : " << bottom[0]->num() << ", " << bottom[0]->channels() << ", " << bottom[0]->height() << ", " << bottom[0]->width();
+  DLOG(ERROR) << "BBOX PRED SHAPE : " << bottom[1]->num() << ", " << bottom[1]->channels() << ", " << bottom[1]->height() << ", " << bottom[1]->width();
+  DLOG(ERROR) << "scores First : " << bottom_rpn_score[0] << ", " << bottom_rpn_score[1] << ", " << bottom_rpn_score[2] << ", " << bottom_rpn_score[3] << ", " << bottom_rpn_score[4] << ", " << bottom_rpn_score[5];
+*/
 
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < height; j++) {
@@ -62,21 +74,20 @@ void FrcnnProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype> *> &bottom,
                                        k * height * width + j * width + i];
         const int index =
             i * height * config_n_anchors + j * config_n_anchors + k;
-        score_idx_vector.push_back(score_idx_pair(score, index));
+        sort_vector.push_back(sort_pair(score, index));
       }
     }
   }
 
   DLOG(ERROR) << "========== generate anchors";
-  std::sort(score_idx_vector.begin(), score_idx_vector.end(), std::greater<score_idx_pair>());
+  std::sort(sort_vector.begin(), sort_vector.end(), std::greater<sort_pair>());
 
-  int n_anchors = score_idx_vector.size();
+  int n_anchors = sort_vector.size();
   n_anchors = std::min(n_anchors, rpn_pre_nms_top_n);
   std::vector<Point4f<Dtype> > anchors(n_anchors);
 
-  //
   for (size_t index = 0; index < n_anchors; index++) {
-    int pick = score_idx_vector[index].second;
+    int pick = sort_vector[index].second;
     int i = pick / (height * config_n_anchors);
     int j = (pick % (height * config_n_anchors)) / config_n_anchors;
     int k = pick % config_n_anchors;
@@ -98,7 +109,7 @@ void FrcnnProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype> *> &bottom,
 
   // clip predicted boxes to image
   DLOG(ERROR) << "========== clip boxes";
-  const Dtype bounds[4] = { im_width -1, im_height -1, im_width -1, im_height -1};
+  const Dtype bounds[4] = { im_width - 1, im_height - 1, im_width - 1, im_height -1 };
   for (int i = 0; i < n_anchors; i++) {
     for (int j = 0; j < 4; j++) {
       anchors[i].Point[j] = std::max(Dtype(0), std::min(anchors[i][j], bounds[j]));
@@ -108,45 +119,47 @@ void FrcnnProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype> *> &bottom,
   std::vector<bool> select(n_anchors, true);
 
   // remove predicted boxes with either height or width < threshold
-  int n_select = n_anchors;
   for (int i = 0; i < n_anchors; i++) {
     float min_size = bottom_im_info[2] * rpn_min_size;
     if ((anchors[i].Point[2] - anchors[i].Point[0]) < min_size ||
         (anchors[i].Point[3] - anchors[i].Point[1]) < min_size) {
       select[i] = false;
-      n_select--;
-    }
-  }
-
-  DLOG(ERROR) << "==========  Convert Box to int[]";
-  vector<float> sorted_boxes(n_select * 4) ;
-  int select_idx = 0;
-  for (int i = 0; i < n_anchors; i++) {
-    if (select[i]) {
-      Point4f<Dtype> &anchor = anchors[i];
-      for (int j = 0; j < 4; j++) {
-        sorted_boxes[select_idx * 4 + j] = anchor[j];
-      }
-      select_idx++;
     }
   }
 
   // apply nms
   DLOG(ERROR) << "========== apply nms";
-  vector<int> keep_out(n_select);
-  int num_out;
-  _nms(&keep_out[0], &num_out, &sorted_boxes[0], n_select, 4, rpn_nms_thresh);
-  DLOG(ERROR) << "rpn num after nms: " << num_out;
+  std::vector<Point4f<Dtype> > box_final;
+  std::vector<Dtype> scores_;
+  for (int i = 0; i < n_anchors && box_final.size() < rpn_post_nms_top_n; i++) {
+    if (select[i]) {
+      for (int j = i + 1; j < n_anchors; j++)
+        if (select[j]) {
+          if (get_iou(anchors[i], anchors[j]) > rpn_nms_thresh) {
+            select[j] = false;
+          }
+        }
+      box_final.push_back(anchors[i]);
+      scores_.push_back(sort_vector[i].first);
+    }
+  }
+  DLOG(ERROR) << "rpn number after nms: " <<  box_final.size();
 
-  num_out = std::min(num_out, rpn_post_nms_top_n);
   DLOG(ERROR) << "========== copy to top";
-  top[0]->Reshape(num_out, 5, 1, 1);
+  top[0]->Reshape(box_final.size(), 5, 1, 1);
   Dtype *top_data = top[0]->mutable_cpu_data();
-  for (int i = 0; i < num_out; i++) {
+  for (size_t i = 0; i < box_final.size(); i++) {
+    Point4f<Dtype> &box = box_final[i];
     top_data[i * 5] = 0;
     for (int j = 1; j < 5; j++) {
-      int keep_idx = keep_out[i];
-      top_data[i * 5 + j] = sorted_boxes[keep_idx * 4 + j - 1];
+      top_data[i * 5 + j] = box[j - 1];
+    }
+  }
+
+  if (top.size() > 1) {
+    top[1]->Reshape(box_final.size(), 1, 1, 1);
+    for (size_t i = 0; i < box_final.size(); i++) {
+      top[1]->mutable_cpu_data()[i] = scores_[i];
     }
   }
 
@@ -165,6 +178,6 @@ void FrcnnProposalLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype> *> &top,
 
 INSTANTIATE_LAYER_GPU_FUNCS(FrcnnProposalLayer);
 
-} // namespace Frcnn
+} // namespace frcnn
 
 } // namespace caffe

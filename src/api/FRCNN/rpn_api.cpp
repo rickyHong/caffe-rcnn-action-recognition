@@ -1,8 +1,8 @@
-#include "api/FRCNN/frcnn_api.hpp"
+#include "api/FRCNN/rpn_api.hpp"
 
 namespace FRCNN_API{
 
-void Detector::preprocess(const cv::Mat &img_in, const int blob_idx) {
+void Rpn_Det::preprocess(const cv::Mat &img_in, const int blob_idx) {
   const vector<Blob<float> *> &input_blobs = net_->input_blobs();
   CHECK(img_in.isContinuous()) << "Warning : cv::Mat img_out is not Continuous !";
   DLOG(ERROR) << "img_in (CHW) : " << img_in.channels() << ", " << img_in.rows << ", " << img_in.cols; 
@@ -20,14 +20,14 @@ void Detector::preprocess(const cv::Mat &img_in, const int blob_idx) {
   }
 }
 
-void Detector::preprocess(const vector<float> &data, const int blob_idx){
+void Rpn_Det::preprocess(const vector<float> &data, const int blob_idx){
   const vector<Blob<float> *> &input_blobs = net_->input_blobs();
   input_blobs[blob_idx]->Reshape(1, data.size(), 1, 1);
   float *blob_data = input_blobs[blob_idx]->mutable_cpu_data();
   std::memcpy(blob_data, &data[0], sizeof(float) * data.size());
 }
 
-void Detector::Set_Model(std::string &proto_file, std::string &model_file, std::string default_config, std::string override_config, int gpu_id){
+void Rpn_Det::Set_Model(std::string &proto_file, std::string &model_file, std::string default_config, std::string override_config, int gpu_id){
   if (gpu_id >= 0) {
 #ifndef CPU_ONLY
     caffe::Caffe::SetDevice(gpu_id);
@@ -44,11 +44,11 @@ void Detector::Set_Model(std::string &proto_file, std::string &model_file, std::
   mean_[0] = FrcnnParam::pixel_means[0];
   mean_[1] = FrcnnParam::pixel_means[1];
   mean_[2] = FrcnnParam::pixel_means[2];
-  DLOG(INFO) << "SET MODEL DONE";
+  LOG(INFO) << "SET MODEL DONE";
   caffe::Frcnn::FrcnnParam::print_param();
 }
 
-vector<boost::shared_ptr<Blob<float> > > Detector::predict(const vector<std::string> blob_names) {
+vector<boost::shared_ptr<Blob<float> > > Rpn_Det::predict(const vector<std::string> blob_names) {
   DLOG(ERROR) << "FORWARD BEGIN";
   float loss;
   net_->Forward(&loss);
@@ -60,7 +60,7 @@ vector<boost::shared_ptr<Blob<float> > > Detector::predict(const vector<std::str
   return output;
 }
 
-void Detector::predict(const cv::Mat &img_in, std::vector<caffe::Frcnn::BBox<float> > &results){
+void Rpn_Det::predict(const cv::Mat &img_in, std::vector<caffe::Frcnn::BBox<float> > &results){
 
   CHECK(FrcnnParam::test_scales.size() == 1) << "Only single-image batch implemented";
 
@@ -90,62 +90,31 @@ void Detector::predict(const cv::Mat &img_in, std::vector<caffe::Frcnn::BBox<flo
   this->preprocess(img, 0);
   this->preprocess(im_info, 1);
 
-  vector<std::string> blob_names(3);
+  vector<std::string> blob_names(2);
   blob_names[0] = "rois";
-  blob_names[1] = "cls_prob";
-  blob_names[2] = "bbox_pred";
+  blob_names[1] = "scores";
 
   vector<boost::shared_ptr<Blob<float> > > output = this->predict(blob_names);
   boost::shared_ptr<Blob<float> > rois(output[0]);
-  boost::shared_ptr<Blob<float> > cls_prob(output[1]);
-  boost::shared_ptr<Blob<float> > bbox_pred(output[2]);
+  boost::shared_ptr<Blob<float> > scores(output[1]);
 
-  const int box_num = bbox_pred->num();
-  const int cls_num = cls_prob->channels();
-  CHECK_EQ(cls_num , caffe::Frcnn::FrcnnParam::n_classes);
+  const int box_num = rois->num();
   results.clear();
 
-  for (int cls = 1; cls < cls_num; cls++) { 
-    vector<BBox<float> > bbox;
-    for (int i = 0; i < box_num; i++) { 
-      float score = cls_prob->cpu_data()[i * cls_num + cls];
+  for (int i = 0; i < box_num; i++) { 
+    float score = scores->data_at(i, 0, 0, 0);
 
-      Point4f<float> roi(rois->cpu_data()[(i * 5) + 1]/scale_factor,
-                     rois->cpu_data()[(i * 5) + 2]/scale_factor,
-                     rois->cpu_data()[(i * 5) + 3]/scale_factor,
-                     rois->cpu_data()[(i * 5) + 4]/scale_factor);
+    Point4f<float> roi(rois->cpu_data()[(i * 5) + 1]/scale_factor,
+            rois->cpu_data()[(i * 5) + 2]/scale_factor,
+            rois->cpu_data()[(i * 5) + 3]/scale_factor,
+            rois->cpu_data()[(i * 5) + 4]/scale_factor);
 
-      Point4f<float> delta(bbox_pred->cpu_data()[(i * cls_num + cls) * 4 + 0],
-                     bbox_pred->cpu_data()[(i * cls_num + cls) * 4 + 1],
-                     bbox_pred->cpu_data()[(i * cls_num + cls) * 4 + 2],
-                     bbox_pred->cpu_data()[(i * cls_num + cls) * 4 + 3]);
+    roi[0] = std::max(0.0f, roi[0]);
+    roi[1] = std::max(0.0f, roi[1]);
+    roi[2] = std::min(width-1.f, roi[2]);
+    roi[3] = std::min(height-1.f, roi[3]);
 
-      Point4f<float> box = caffe::Frcnn::bbox_transform_inv(roi, delta);
-      box[0] = std::max(0.0f, box[0]);
-      box[1] = std::max(0.0f, box[1]);
-      box[2] = std::min(width-1.f, box[2]);
-      box[3] = std::min(height-1.f, box[3]);
-
-      // BBox tmp(box, score, cls);
-      // LOG(ERROR) << "cls: " << tmp.id << " score: " << tmp.confidence;
-      // LOG(ERROR) << "roi: " << roi.to_string();
-      bbox.push_back(BBox<float>(box, score, cls));
-    }
-    sort(bbox.begin(), bbox.end());
-    vector<bool> select(box_num, true);
-    // Apply NMS
-    for (int i = 0; i < box_num; i++)
-      if (select[i]) {
-        if (bbox[i].confidence < FrcnnParam::test_score_thresh) break;
-        for (int j = i + 1; j < box_num; j++) {
-          if (select[j]) {
-            if (get_iou(bbox[i], bbox[j]) > FrcnnParam::test_nms) {
-              select[j] = false;
-            }
-          }
-        }
-        results.push_back(bbox[i]);
-      }
+    results.push_back(BBox<float>(roi, score, 1));
   }
 
 }

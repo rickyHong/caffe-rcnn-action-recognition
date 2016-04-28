@@ -4,7 +4,7 @@
 #include "caffe/util/benchmark.hpp"
 #include "caffe/util/signal_handler.h"
 #include "caffe/FRCNN/util/frcnn_vis.hpp"
-#include "api/FRCNN/frcnn_api.hpp"
+#include "api/FRCNN/rpn_api.hpp"
 
 DEFINE_string(gpu, "", 
     "Optional; run in GPU mode on the given device ID, Empty is CPU");
@@ -50,7 +50,7 @@ int main(int argc, char** argv){
   std::string image_dir = FLAGS_image_dir.c_str();
   std::string out_dir = FLAGS_out_dir.c_str();
   std::vector<std::string> images = caffe::Frcnn::get_file_list(image_dir, ".jpg");
-  FRCNN_API::Detector detector(proto_file, model_file, default_config_file, override_config_file, gpu_id); 
+  FRCNN_API::Rpn_Det detector(proto_file, model_file, default_config_file, override_config_file, gpu_id); 
   
   std::vector<caffe::Frcnn::BBox<float> > results;
   caffe::Timer time_;
@@ -65,7 +65,7 @@ int main(int argc, char** argv){
     for (size_t obj = 0; obj < results.size(); obj++) {
         LOG(INFO) << results[obj].to_string();
     }
-    caffe::Frcnn::vis_detections(image, results, caffe::Frcnn::LoadVocClass() );
+    caffe::Frcnn::vis_detections(image, results, caffe::Frcnn::LoadRpnClass() );
     cv::imwrite(out_dir+images[index], image);
   }
   return 0;

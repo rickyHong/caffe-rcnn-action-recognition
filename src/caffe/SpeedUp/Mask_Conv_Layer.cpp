@@ -315,7 +315,7 @@ void MaskConvolutionLayer<Dtype>::PrepareMask(const int num_index, const vector<
   DLOG(INFO) << "num_index : " << num_index << ", spatial_dim : " << spatial_dim;
   DLOG(INFO) << "mask shift : " << bottom[1]->offset(num_index) << "  c_top_.size : " << c_top_.size();
   for (int index = 0; index < this->group_; index++) {
-    const Dtype* mask = bottom[1]->cpu_data() + bottom[1]->offset(num_index, index);
+    //const Dtype* mask = bottom[1]->cpu_data() + bottom[1]->offset(num_index, index);
     DLOG(INFO) << "c_top_[" << index << "]  Reshape " << 1 << ", " << top[0]->channels() / this->group_ << ", " << top[0]->height() << ", " << top[0]->width();
 
     c_top_[index]->Reshape(1, top[0]->channels() / this->group_, top[0]->height(), top[0]->width());
@@ -366,7 +366,7 @@ void MaskConvolutionLayer<Dtype>::base_im2col_cpu(const Dtype* data_im, const in
     const int pad_h, const int pad_w,
     const int stride_h, const int stride_w,
     Dtype* data_col, const shared_ptr<Blob<int> > stride_blob,const int limit) {
-  const int output_h = (height + 2 * pad_h - kernel_h ) / stride_h + 1;
+  //const int output_h = (height + 2 * pad_h - kernel_h ) / stride_h + 1;
   const int output_w = (width + 2 * pad_w - kernel_w ) / stride_w + 1;
   const int channel_size = height * width;
   //CHECK_EQ(output_h, stride_blob->height());
@@ -374,7 +374,6 @@ void MaskConvolutionLayer<Dtype>::base_im2col_cpu(const Dtype* data_im, const in
   //CHECK_EQ(stride_blob->num(), 1);
   //CHECK_EQ(stride_blob->channels(), 1);
   //DLOG(INFO) << "<> base_im2col_cpu : " << output_h << ", " << output_w << ", " << width ;
-  LOG(INFO) << "BASE=========";
   const int *STRIDE = stride_blob->cpu_data();
   const int count = stride_blob->count();
   for (int channel = channels; channel--; data_im += channel_size) {
@@ -399,7 +398,6 @@ void MaskConvolutionLayer<Dtype>::base_im2col_cpu(const Dtype* data_im, const in
       }
     }
   }
-  LOG(INFO) << "BASE------------";
 }
 
 template <typename Dtype>

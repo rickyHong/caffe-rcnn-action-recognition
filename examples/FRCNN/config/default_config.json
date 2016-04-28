@@ -6,7 +6,7 @@
  "fg_thresh": "0.5",
  "bg_thresh_hi": "0.5",
  "bg_thresh_lo": "0.1",
- "use_flipped": "1",
+ "use_flipped": "0",
 
  "bbox_reg": "1",
  "bbox_thresh": "0.5",
