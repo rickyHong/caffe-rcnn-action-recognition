@@ -61,12 +61,27 @@ int main(int argc, char** argv){
     time_.Start();
     detector.predict(image, results);
     LOG(INFO) << "Predict " << images[index] << " cost " << time_.MilliSeconds() << " ms."; 
+    std::vector<caffe::Frcnn::BBox<float> > results_drop_low_confidence;
+    for (size_t obj = 0; obj < results.size(); obj++) {
+      if (results[obj].confidence >= caffe::Frcnn::FrcnnParam::test_score_thresh) {
+        results_drop_low_confidence.push_back( results[obj] );
+      }
+    }
+    results = results_drop_low_confidence;
     LOG(INFO) << "There are " << results.size() << " objects in picture.";
     for (size_t obj = 0; obj < results.size(); obj++) {
         LOG(INFO) << results[obj].to_string();
     }
-    caffe::Frcnn::vis_detections(image, results, caffe::Frcnn::LoadRpnClass() );
-    cv::imwrite(out_dir+images[index], image);
+    
+    for (size_t obj = 0; obj < results.size(); obj++) {
+      cv::Mat ori ; 
+      image.convertTo(ori, CV_32FC3);
+      caffe::Frcnn::vis_detections(ori, results[obj], caffe::Frcnn::LoadRpnClass() );
+      std::string name = out_dir+images[index];
+      char xx[100];
+      sprintf(xx, "%s_%03d.jpg", name.c_str(), (int)obj);
+      cv::imwrite(std::string(xx), ori);
+    }
   }
   return 0;
 }

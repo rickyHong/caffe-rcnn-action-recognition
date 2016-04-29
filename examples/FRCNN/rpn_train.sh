@@ -3,6 +3,6 @@
 CAFFE=build/tools/caffe
 
 GLOG_log_dir=examples/FRCNN/log $CAFFE train   \
-       --gpu 0 \
+       --gpu 3 \
        --solver models/FRCNN/zf_rpn/solver.prototxt \
        --model models/FRCNN/ZF.v2.caffemodel 

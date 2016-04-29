@@ -2,6 +2,7 @@
  "use_flipped": "1",
  "snapshot_infix": "voc2007_zf",
 
+ "bg_thresh_lo": "0.0",
  "rpn_positive_overlap": "0.7",
  "rpn_negative_overlap": "0.3",
  "rpn_clobber_positives": "0",
