@@ -35,6 +35,9 @@ inline std::map<int,string> LoadRpnClass(){
 template <typename Dtype>
 void vis_detections(cv::Mat & frame, const std::vector<BBox<Dtype> >& ans, const std::map<int,std::string> CLASS); 
 
+template <typename Dtype>
+void vis_detections(cv::Mat & frame, const BBox<Dtype> ans, const std::map<int,std::string> CLASS); 
+
 }  // namespace frcnn
 
 }  // namespace caffe

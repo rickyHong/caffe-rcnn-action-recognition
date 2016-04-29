@@ -18,7 +18,7 @@
  "test_max_size": "1000",
  "test_nms": "0.3",
  "test_bbox_reg": "1",
- "test_rpn_nms_thresh": "0.7",
+ "test_rpn_nms_thresh": "0.3",
  "test_rpn_pre_nms_top_n": "6000",
  "test_rpn_post_nms_top_n": "300",
  "test_rpn_min_size": "16",
