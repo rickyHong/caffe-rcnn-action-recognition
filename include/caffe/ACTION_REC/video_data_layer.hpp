@@ -50,14 +50,15 @@ protected:
     vector<std::pair<std::string, int> > lines_;
     vector<int> lines_duration_;
     int lines_id_;
-};
 
-// For Video Data Layer to Handle Data
-bool ReadSegmentFlowToDatum(const string& filename, const int label,
+    // For Video Data Layer to Handle Data
+    bool ReadSegmentFlowToDatum(const string& filename, const int label,
         const vector<int> offsets, const int height, const int width, const int length, Datum* datum);
 
-bool ReadSegmentRGBToDatum(const string& filename, const int label,
+    bool ReadSegmentRGBToDatum(const string& filename, const int label,
         const vector<int> offsets, const int height, const int width, const int length, Datum* datum, bool is_color);
+};
+
 
 }  // namespace caffe
 

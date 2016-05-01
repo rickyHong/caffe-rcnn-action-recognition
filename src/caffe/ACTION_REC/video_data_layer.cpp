@@ -156,7 +156,8 @@ void VideoDataLayer<Dtype>::load_batch(Batch<Dtype>* batch){
 
 }
 
-bool ReadSegmentRGBToDatum(const string& filename, const int label,
+template <typename Dtype>
+bool VideoDataLayer<Dtype>::ReadSegmentRGBToDatum(const string& filename, const int label,
     const vector<int> offsets, const int height, const int width, const int length, Datum* datum, bool is_color){
     cv::Mat cv_img;
     string* datum_string;
@@ -170,7 +171,8 @@ bool ReadSegmentRGBToDatum(const string& filename, const int label,
             string filename_t = filename + "/" + tmp;
             cv::Mat cv_img_origin = cv::imread(filename_t, cv_read_flag);
             if (!cv_img_origin.data){
-                LOG(ERROR) << "Could not load file " << filename;
+                LOG(ERROR) << "Could not load file " << filename << std::endl
+                    << filename_t;
                 return false;
             }
             if (height > 0 && width > 0){
@@ -210,7 +212,8 @@ bool ReadSegmentRGBToDatum(const string& filename, const int label,
     return true;
 }
 
-bool ReadSegmentFlowToDatum(const string& filename, const int label,
+template <typename Dtype>
+bool VideoDataLayer<Dtype>::ReadSegmentFlowToDatum(const string& filename, const int label,
     const vector<int> offsets, const int height, const int width, const int length, Datum* datum){
     cv::Mat cv_img_x, cv_img_y;
     string* datum_string;
@@ -218,10 +221,10 @@ bool ReadSegmentFlowToDatum(const string& filename, const int label,
     for (int i = 0; i < offsets.size(); ++i){
         int offset = offsets[i];
         for (int file_id = 1; file_id < length+1; ++file_id){
-            sprintf(tmp,"flow_x_%08d.jpg",int(file_id+offset));
+            sprintf(tmp,"flow_x_%08d.jpg",int(file_id+offset-1));
             string filename_x = filename + "/" + tmp;
             cv::Mat cv_img_origin_x = cv::imread(filename_x, CV_LOAD_IMAGE_GRAYSCALE);
-            sprintf(tmp,"flow_y_%04d.jpg",int(file_id+offset));
+            sprintf(tmp,"flow_y_%08d.jpg",int(file_id+offset-1));
             string filename_y = filename + "/" + tmp;
             cv::Mat cv_img_origin_y = cv::imread(filename_y, CV_LOAD_IMAGE_GRAYSCALE);
             if (!cv_img_origin_x.data || !cv_img_origin_y.data){

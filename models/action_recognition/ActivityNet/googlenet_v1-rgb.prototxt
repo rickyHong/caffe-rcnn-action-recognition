@@ -3,7 +3,7 @@ layer {
   name: "data"
   type: "VideoData"
   top: "data"
-  top: "label_local"
+  top: "label"
   video_data_param {
     source: "examples/action_recognition/dataset_file_examples/actnet_train_clip.txt"
     batch_size: 16
@@ -28,7 +28,7 @@ layer {
   name: "data"
   type: "VideoData"
   top: "data"
-  top: "label_local"
+  top: "label"
   video_data_param {
     source: "examples/action_recognition/dataset_file_examples/actnet_vali_clip.txt"
     batch_size: 5
@@ -2383,7 +2383,7 @@ layer {
   }
 }
 layer {
-  name: "loss3/classifier"
+  name: "loss3/classifier-For200"
   type: "InnerProduct"
   bottom: "pool5/7x7_s1"
   top: "loss3/classifier-For200"
