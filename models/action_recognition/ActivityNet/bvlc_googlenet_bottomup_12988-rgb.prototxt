@@ -3,7 +3,7 @@ layer {
   name: "data"
   type: "VideoData"
   top: "data"
-  top: "label_local"
+  top: "label"
   video_data_param {
     source: "examples/action_recognition/dataset_file_examples/actnet_train_clip.txt"
     batch_size: 16
@@ -28,7 +28,7 @@ layer {
   name: "data"
   type: "VideoData"
   top: "data"
-  top: "label_local"
+  top: "label"
   video_data_param {
     source: "examples/action_recognition/dataset_file_examples/actnet_vali_clip.txt"
     batch_size: 5
@@ -73,14 +73,14 @@ layer {
 layer {
   bottom: "conv1/7x7_s2"
   top: "conv1/7x7_s2"
-  name: "conv1/relu_7x7"
-  type: "relu"
+  name: "conv1/ReLU_7x7"
+  type: "ReLU"
 }
 layer {
   bottom: "conv1/7x7_s2"
   top: "pool1/3x3_s2"
   name: "pool1/3x3_s2"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -91,11 +91,12 @@ layer {
   bottom: "pool1/3x3_s2"
   top: "pool1/norm1"
   name: "pool1/norm1"
-  type: LRN
+  type: "LRN"
   lrn_param {
     local_size: 5
     alpha: 0.0001
     beta: 0.75
+    engine: CAFFE
   }
 }
 layer {
@@ -123,8 +124,8 @@ layer {
 layer {
   bottom: "conv2/3x3_reduce"
   top: "conv2/3x3_reduce"
-  name: "conv2/relu_3x3_reduce"
-  type: "relu"
+  name: "conv2/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "conv2/3x3_reduce"
@@ -152,25 +153,26 @@ layer {
 layer {
   bottom: "conv2/3x3"
   top: "conv2/3x3"
-  name: "conv2/relu_3x3"
-  type: "relu"
+  name: "conv2/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "conv2/3x3"
   top: "conv2/norm2"
   name: "conv2/norm2"
-  type: LRN
+  type: "LRN"
   lrn_param {
     local_size: 5
     alpha: 0.0001
     beta: 0.75
+    engine: CAFFE
   }
 }
 layer {
   bottom: "conv2/norm2"
   top: "pool2/3x3_s2"
   name: "pool2/3x3_s2"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -202,8 +204,8 @@ layer {
 layer {
   bottom: "inception_3a/1x1"
   top: "inception_3a/1x1"
-  name: "inception_3a/relu_1x1"
-  type: "relu"
+  name: "inception_3a/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "pool2/3x3_s2"
@@ -230,8 +232,8 @@ layer {
 layer {
   bottom: "inception_3a/3x3_reduce"
   top: "inception_3a/3x3_reduce"
-  name: "inception_3a/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_3a/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3a/3x3_reduce"
@@ -259,8 +261,8 @@ layer {
 layer {
   bottom: "inception_3a/3x3"
   top: "inception_3a/3x3"
-  name: "inception_3a/relu_3x3"
-  type: "relu"
+  name: "inception_3a/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "pool2/3x3_s2"
@@ -287,8 +289,8 @@ layer {
 layer {
   bottom: "inception_3a/5x5_reduce"
   top: "inception_3a/5x5_reduce"
-  name: "inception_3a/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_3a/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3a/5x5_reduce"
@@ -316,14 +318,14 @@ layer {
 layer {
   bottom: "inception_3a/5x5"
   top: "inception_3a/5x5"
-  name: "inception_3a/relu_5x5"
-  type: "relu"
+  name: "inception_3a/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "pool2/3x3_s2"
   top: "inception_3a/pool"
   name: "inception_3a/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -356,8 +358,8 @@ layer {
 layer {
   bottom: "inception_3a/pool_proj"
   top: "inception_3a/pool_proj"
-  name: "inception_3a/relu_pool_proj"
-  type: "relu"
+  name: "inception_3a/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3a/1x1"
@@ -393,8 +395,8 @@ layer {
 layer {
   bottom: "inception_3b/1x1"
   top: "inception_3b/1x1"
-  name: "inception_3b/relu_1x1"
-  type: "relu"
+  name: "inception_3b/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3a/output"
@@ -421,8 +423,8 @@ layer {
 layer {
   bottom: "inception_3b/3x3_reduce"
   top: "inception_3b/3x3_reduce"
-  name: "inception_3b/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_3b/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3b/3x3_reduce"
@@ -450,8 +452,8 @@ layer {
 layer {
   bottom: "inception_3b/3x3"
   top: "inception_3b/3x3"
-  name: "inception_3b/relu_3x3"
-  type: "relu"
+  name: "inception_3b/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3a/output"
@@ -478,8 +480,8 @@ layer {
 layer {
   bottom: "inception_3b/5x5_reduce"
   top: "inception_3b/5x5_reduce"
-  name: "inception_3b/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_3b/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3b/5x5_reduce"
@@ -507,14 +509,14 @@ layer {
 layer {
   bottom: "inception_3b/5x5"
   top: "inception_3b/5x5"
-  name: "inception_3b/relu_5x5"
-  type: "relu"
+  name: "inception_3b/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3a/output"
   top: "inception_3b/pool"
   name: "inception_3b/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -547,8 +549,8 @@ layer {
 layer {
   bottom: "inception_3b/pool_proj"
   top: "inception_3b/pool_proj"
-  name: "inception_3b/relu_pool_proj"
-  type: "relu"
+  name: "inception_3b/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_3b/1x1"
@@ -563,7 +565,7 @@ layer {
   bottom: "inception_3b/output"
   top: "pool3/3x3_s2"
   name: "pool3/3x3_s2"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -595,8 +597,8 @@ layer {
 layer {
   bottom: "inception_4a/1x1"
   top: "inception_4a/1x1"
-  name: "inception_4a/relu_1x1"
-  type: "relu"
+  name: "inception_4a/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "pool3/3x3_s2"
@@ -623,8 +625,8 @@ layer {
 layer {
   bottom: "inception_4a/3x3_reduce"
   top: "inception_4a/3x3_reduce"
-  name: "inception_4a/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_4a/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4a/3x3_reduce"
@@ -652,8 +654,8 @@ layer {
 layer {
   bottom: "inception_4a/3x3"
   top: "inception_4a/3x3"
-  name: "inception_4a/relu_3x3"
-  type: "relu"
+  name: "inception_4a/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "pool3/3x3_s2"
@@ -680,8 +682,8 @@ layer {
 layer {
   bottom: "inception_4a/5x5_reduce"
   top: "inception_4a/5x5_reduce"
-  name: "inception_4a/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_4a/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4a/5x5_reduce"
@@ -709,14 +711,14 @@ layer {
 layer {
   bottom: "inception_4a/5x5"
   top: "inception_4a/5x5"
-  name: "inception_4a/relu_5x5"
-  type: "relu"
+  name: "inception_4a/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "pool3/3x3_s2"
   top: "inception_4a/pool"
   name: "inception_4a/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -749,8 +751,8 @@ layer {
 layer {
   bottom: "inception_4a/pool_proj"
   top: "inception_4a/pool_proj"
-  name: "inception_4a/relu_pool_proj"
-  type: "relu"
+  name: "inception_4a/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4a/1x1"
@@ -786,8 +788,8 @@ layer {
 layer {
   bottom: "inception_4b/1x1"
   top: "inception_4b/1x1"
-  name: "inception_4b/relu_1x1"
-  type: "relu"
+  name: "inception_4b/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4a/output"
@@ -814,8 +816,8 @@ layer {
 layer {
   bottom: "inception_4b/3x3_reduce"
   top: "inception_4b/3x3_reduce"
-  name: "inception_4b/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_4b/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4b/3x3_reduce"
@@ -843,8 +845,8 @@ layer {
 layer {
   bottom: "inception_4b/3x3"
   top: "inception_4b/3x3"
-  name: "inception_4b/relu_3x3"
-  type: "relu"
+  name: "inception_4b/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4a/output"
@@ -871,8 +873,8 @@ layer {
 layer {
   bottom: "inception_4b/5x5_reduce"
   top: "inception_4b/5x5_reduce"
-  name: "inception_4b/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_4b/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4b/5x5_reduce"
@@ -900,14 +902,14 @@ layer {
 layer {
   bottom: "inception_4b/5x5"
   top: "inception_4b/5x5"
-  name: "inception_4b/relu_5x5"
-  type: "relu"
+  name: "inception_4b/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4a/output"
   top: "inception_4b/pool"
   name: "inception_4b/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -940,8 +942,8 @@ layer {
 layer {
   bottom: "inception_4b/pool_proj"
   top: "inception_4b/pool_proj"
-  name: "inception_4b/relu_pool_proj"
-  type: "relu"
+  name: "inception_4b/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4b/1x1"
@@ -977,8 +979,8 @@ layer {
 layer {
   bottom: "inception_4c/1x1"
   top: "inception_4c/1x1"
-  name: "inception_4c/relu_1x1"
-  type: "relu"
+  name: "inception_4c/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4b/output"
@@ -1005,8 +1007,8 @@ layer {
 layer {
   bottom: "inception_4c/3x3_reduce"
   top: "inception_4c/3x3_reduce"
-  name: "inception_4c/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_4c/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4c/3x3_reduce"
@@ -1034,8 +1036,8 @@ layer {
 layer {
   bottom: "inception_4c/3x3"
   top: "inception_4c/3x3"
-  name: "inception_4c/relu_3x3"
-  type: "relu"
+  name: "inception_4c/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4b/output"
@@ -1062,8 +1064,8 @@ layer {
 layer {
   bottom: "inception_4c/5x5_reduce"
   top: "inception_4c/5x5_reduce"
-  name: "inception_4c/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_4c/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4c/5x5_reduce"
@@ -1091,14 +1093,14 @@ layer {
 layer {
   bottom: "inception_4c/5x5"
   top: "inception_4c/5x5"
-  name: "inception_4c/relu_5x5"
-  type: "relu"
+  name: "inception_4c/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4b/output"
   top: "inception_4c/pool"
   name: "inception_4c/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -1131,8 +1133,8 @@ layer {
 layer {
   bottom: "inception_4c/pool_proj"
   top: "inception_4c/pool_proj"
-  name: "inception_4c/relu_pool_proj"
-  type: "relu"
+  name: "inception_4c/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4c/1x1"
@@ -1168,8 +1170,8 @@ layer {
 layer {
   bottom: "inception_4d/1x1"
   top: "inception_4d/1x1"
-  name: "inception_4d/relu_1x1"
-  type: "relu"
+  name: "inception_4d/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4c/output"
@@ -1196,8 +1198,8 @@ layer {
 layer {
   bottom: "inception_4d/3x3_reduce"
   top: "inception_4d/3x3_reduce"
-  name: "inception_4d/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_4d/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4d/3x3_reduce"
@@ -1225,8 +1227,8 @@ layer {
 layer {
   bottom: "inception_4d/3x3"
   top: "inception_4d/3x3"
-  name: "inception_4d/relu_3x3"
-  type: "relu"
+  name: "inception_4d/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4c/output"
@@ -1253,8 +1255,8 @@ layer {
 layer {
   bottom: "inception_4d/5x5_reduce"
   top: "inception_4d/5x5_reduce"
-  name: "inception_4d/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_4d/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4d/5x5_reduce"
@@ -1282,14 +1284,14 @@ layer {
 layer {
   bottom: "inception_4d/5x5"
   top: "inception_4d/5x5"
-  name: "inception_4d/relu_5x5"
-  type: "relu"
+  name: "inception_4d/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4c/output"
   top: "inception_4d/pool"
   name: "inception_4d/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -1322,8 +1324,8 @@ layer {
 layer {
   bottom: "inception_4d/pool_proj"
   top: "inception_4d/pool_proj"
-  name: "inception_4d/relu_pool_proj"
-  type: "relu"
+  name: "inception_4d/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4d/1x1"
@@ -1359,8 +1361,8 @@ layer {
 layer {
   bottom: "inception_4e/1x1"
   top: "inception_4e/1x1"
-  name: "inception_4e/relu_1x1"
-  type: "relu"
+  name: "inception_4e/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4d/output"
@@ -1387,8 +1389,8 @@ layer {
 layer {
   bottom: "inception_4e/3x3_reduce"
   top: "inception_4e/3x3_reduce"
-  name: "inception_4e/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_4e/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4e/3x3_reduce"
@@ -1416,8 +1418,8 @@ layer {
 layer {
   bottom: "inception_4e/3x3"
   top: "inception_4e/3x3"
-  name: "inception_4e/relu_3x3"
-  type: "relu"
+  name: "inception_4e/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4d/output"
@@ -1444,8 +1446,8 @@ layer {
 layer {
   bottom: "inception_4e/5x5_reduce"
   top: "inception_4e/5x5_reduce"
-  name: "inception_4e/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_4e/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4e/5x5_reduce"
@@ -1473,14 +1475,14 @@ layer {
 layer {
   bottom: "inception_4e/5x5"
   top: "inception_4e/5x5"
-  name: "inception_4e/relu_5x5"
-  type: "relu"
+  name: "inception_4e/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4d/output"
   top: "inception_4e/pool"
   name: "inception_4e/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -1513,8 +1515,8 @@ layer {
 layer {
   bottom: "inception_4e/pool_proj"
   top: "inception_4e/pool_proj"
-  name: "inception_4e/relu_pool_proj"
-  type: "relu"
+  name: "inception_4e/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_4e/1x1"
@@ -1529,7 +1531,7 @@ layer {
   bottom: "inception_4e/output"
   top: "pool4/3x3_s2"
   name: "pool4/3x3_s2"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -1561,8 +1563,8 @@ layer {
 layer {
   bottom: "inception_5a/1x1"
   top: "inception_5a/1x1"
-  name: "inception_5a/relu_1x1"
-  type: "relu"
+  name: "inception_5a/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "pool4/3x3_s2"
@@ -1589,8 +1591,8 @@ layer {
 layer {
   bottom: "inception_5a/3x3_reduce"
   top: "inception_5a/3x3_reduce"
-  name: "inception_5a/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_5a/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5a/3x3_reduce"
@@ -1618,8 +1620,8 @@ layer {
 layer {
   bottom: "inception_5a/3x3"
   top: "inception_5a/3x3"
-  name: "inception_5a/relu_3x3"
-  type: "relu"
+  name: "inception_5a/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "pool4/3x3_s2"
@@ -1646,8 +1648,8 @@ layer {
 layer {
   bottom: "inception_5a/5x5_reduce"
   top: "inception_5a/5x5_reduce"
-  name: "inception_5a/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_5a/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5a/5x5_reduce"
@@ -1675,14 +1677,14 @@ layer {
 layer {
   bottom: "inception_5a/5x5"
   top: "inception_5a/5x5"
-  name: "inception_5a/relu_5x5"
-  type: "relu"
+  name: "inception_5a/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "pool4/3x3_s2"
   top: "inception_5a/pool"
   name: "inception_5a/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -1715,8 +1717,8 @@ layer {
 layer {
   bottom: "inception_5a/pool_proj"
   top: "inception_5a/pool_proj"
-  name: "inception_5a/relu_pool_proj"
-  type: "relu"
+  name: "inception_5a/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5a/1x1"
@@ -1752,8 +1754,8 @@ layer {
 layer {
   bottom: "inception_5b/1x1"
   top: "inception_5b/1x1"
-  name: "inception_5b/relu_1x1"
-  type: "relu"
+  name: "inception_5b/ReLU_1x1"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5a/output"
@@ -1780,8 +1782,8 @@ layer {
 layer {
   bottom: "inception_5b/3x3_reduce"
   top: "inception_5b/3x3_reduce"
-  name: "inception_5b/relu_3x3_reduce"
-  type: "relu"
+  name: "inception_5b/ReLU_3x3_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5b/3x3_reduce"
@@ -1809,8 +1811,8 @@ layer {
 layer {
   bottom: "inception_5b/3x3"
   top: "inception_5b/3x3"
-  name: "inception_5b/relu_3x3"
-  type: "relu"
+  name: "inception_5b/ReLU_3x3"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5a/output"
@@ -1837,8 +1839,8 @@ layer {
 layer {
   bottom: "inception_5b/5x5_reduce"
   top: "inception_5b/5x5_reduce"
-  name: "inception_5b/relu_5x5_reduce"
-  type: "relu"
+  name: "inception_5b/ReLU_5x5_reduce"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5b/5x5_reduce"
@@ -1866,14 +1868,14 @@ layer {
 layer {
   bottom: "inception_5b/5x5"
   top: "inception_5b/5x5"
-  name: "inception_5b/relu_5x5"
-  type: "relu"
+  name: "inception_5b/ReLU_5x5"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5a/output"
   top: "inception_5b/pool"
   name: "inception_5b/pool"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -1906,8 +1908,8 @@ layer {
 layer {
   bottom: "inception_5b/pool_proj"
   top: "inception_5b/pool_proj"
-  name: "inception_5b/relu_pool_proj"
-  type: "relu"
+  name: "inception_5b/ReLU_pool_proj"
+  type: "ReLU"
 }
 layer {
   bottom: "inception_5b/1x1"
@@ -1922,7 +1924,7 @@ layer {
   bottom: "inception_5b/output"
   top: "pool5/7x7_s1"
   name: "pool5/7x7_s1"
-  type: "pooling"
+  type: "Pooling"
   pooling_param {
     pool: AVE
     kernel_size: 7
@@ -1940,7 +1942,7 @@ layer {
 }
 layer {
   bottom: "pool5/7x7_s1"
-  top: "loss3/classifier"
+  top: "loss3/classifier-For200"
   name: "loss3/classifier-For200"
   type: "InnerProduct"
   param { lr_mult: 1 decay_mult: 1}
