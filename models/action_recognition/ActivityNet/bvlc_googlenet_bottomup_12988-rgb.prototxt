@@ -51,10 +51,10 @@ layer {
   top: "conv1/7x7_s2"
   name: "conv1/7x7_s2"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     pad: 3
@@ -103,10 +103,10 @@ layer {
   top: "conv2/3x3_reduce"
   name: "conv2/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     kernel_size: 1
@@ -131,10 +131,10 @@ layer {
   top: "conv2/3x3"
   name: "conv2/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 192
     pad: 1
@@ -182,10 +182,10 @@ layer {
   top: "inception_3a/1x1"
   name: "inception_3a/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     kernel_size: 1
@@ -210,10 +210,10 @@ layer {
   top: "inception_3a/3x3_reduce"
   name: "inception_3a/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 96
     kernel_size: 1
@@ -238,10 +238,10 @@ layer {
   top: "inception_3a/3x3"
   name: "inception_3a/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     pad: 1
@@ -267,10 +267,10 @@ layer {
   top: "inception_3a/5x5_reduce"
   name: "inception_3a/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 16
     kernel_size: 1
@@ -295,10 +295,10 @@ layer {
   top: "inception_3a/5x5"
   name: "inception_3a/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 32
     pad: 2
@@ -336,10 +336,10 @@ layer {
   top: "inception_3a/pool_proj"
   name: "inception_3a/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 32
     kernel_size: 1
@@ -373,10 +373,10 @@ layer {
   top: "inception_3b/1x1"
   name: "inception_3b/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     kernel_size: 1
@@ -401,10 +401,10 @@ layer {
   top: "inception_3b/3x3_reduce"
   name: "inception_3b/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     kernel_size: 1
@@ -429,10 +429,10 @@ layer {
   top: "inception_3b/3x3"
   name: "inception_3b/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 192
     pad: 1
@@ -458,10 +458,10 @@ layer {
   top: "inception_3b/5x5_reduce"
   name: "inception_3b/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 32
     kernel_size: 1
@@ -486,10 +486,10 @@ layer {
   top: "inception_3b/5x5"
   name: "inception_3b/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 96
     pad: 2
@@ -527,10 +527,10 @@ layer {
   top: "inception_3b/pool_proj"
   name: "inception_3b/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     kernel_size: 1
@@ -575,10 +575,10 @@ layer {
   top: "inception_4a/1x1"
   name: "inception_4a/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 192
     kernel_size: 1
@@ -603,10 +603,10 @@ layer {
   top: "inception_4a/3x3_reduce"
   name: "inception_4a/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 96
     kernel_size: 1
@@ -631,10 +631,10 @@ layer {
   top: "inception_4a/3x3"
   name: "inception_4a/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 208
     pad: 1
@@ -660,10 +660,10 @@ layer {
   top: "inception_4a/5x5_reduce"
   name: "inception_4a/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 16
     kernel_size: 1
@@ -688,10 +688,10 @@ layer {
   top: "inception_4a/5x5"
   name: "inception_4a/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 48
     pad: 2
@@ -729,10 +729,10 @@ layer {
   top: "inception_4a/pool_proj"
   name: "inception_4a/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     kernel_size: 1
@@ -766,10 +766,10 @@ layer {
   top: "inception_4b/1x1"
   name: "inception_4b/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 160
     kernel_size: 1
@@ -794,10 +794,10 @@ layer {
   top: "inception_4b/3x3_reduce"
   name: "inception_4b/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 112
     kernel_size: 1
@@ -822,10 +822,10 @@ layer {
   top: "inception_4b/3x3"
   name: "inception_4b/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 224
     pad: 1
@@ -851,10 +851,10 @@ layer {
   top: "inception_4b/5x5_reduce"
   name: "inception_4b/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 24
     kernel_size: 1
@@ -879,10 +879,10 @@ layer {
   top: "inception_4b/5x5"
   name: "inception_4b/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     pad: 2
@@ -920,10 +920,10 @@ layer {
   top: "inception_4b/pool_proj"
   name: "inception_4b/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     kernel_size: 1
@@ -957,10 +957,10 @@ layer {
   top: "inception_4c/1x1"
   name: "inception_4c/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     kernel_size: 1
@@ -985,10 +985,10 @@ layer {
   top: "inception_4c/3x3_reduce"
   name: "inception_4c/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     kernel_size: 1
@@ -1013,10 +1013,10 @@ layer {
   top: "inception_4c/3x3"
   name: "inception_4c/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 256
     pad: 1
@@ -1042,10 +1042,10 @@ layer {
   top: "inception_4c/5x5_reduce"
   name: "inception_4c/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 24
     kernel_size: 1
@@ -1070,10 +1070,10 @@ layer {
   top: "inception_4c/5x5"
   name: "inception_4c/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     pad: 2
@@ -1111,10 +1111,10 @@ layer {
   top: "inception_4c/pool_proj"
   name: "inception_4c/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     kernel_size: 1
@@ -1148,10 +1148,10 @@ layer {
   top: "inception_4d/1x1"
   name: "inception_4d/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 112
     kernel_size: 1
@@ -1176,10 +1176,10 @@ layer {
   top: "inception_4d/3x3_reduce"
   name: "inception_4d/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 144
     kernel_size: 1
@@ -1204,10 +1204,10 @@ layer {
   top: "inception_4d/3x3"
   name: "inception_4d/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 288
     pad: 1
@@ -1233,10 +1233,10 @@ layer {
   top: "inception_4d/5x5_reduce"
   name: "inception_4d/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 32
     kernel_size: 1
@@ -1261,10 +1261,10 @@ layer {
   top: "inception_4d/5x5"
   name: "inception_4d/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     pad: 2
@@ -1302,10 +1302,10 @@ layer {
   top: "inception_4d/pool_proj"
   name: "inception_4d/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 64
     kernel_size: 1
@@ -1339,10 +1339,10 @@ layer {
   top: "inception_4e/1x1"
   name: "inception_4e/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 256
     kernel_size: 1
@@ -1367,10 +1367,10 @@ layer {
   top: "inception_4e/3x3_reduce"
   name: "inception_4e/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 160
     kernel_size: 1
@@ -1395,10 +1395,10 @@ layer {
   top: "inception_4e/3x3"
   name: "inception_4e/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 320
     pad: 1
@@ -1424,10 +1424,10 @@ layer {
   top: "inception_4e/5x5_reduce"
   name: "inception_4e/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 32
     kernel_size: 1
@@ -1452,10 +1452,10 @@ layer {
   top: "inception_4e/5x5"
   name: "inception_4e/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     pad: 2
@@ -1493,10 +1493,10 @@ layer {
   top: "inception_4e/pool_proj"
   name: "inception_4e/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     kernel_size: 1
@@ -1541,10 +1541,10 @@ layer {
   top: "inception_5a/1x1"
   name: "inception_5a/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 256
     kernel_size: 1
@@ -1569,10 +1569,10 @@ layer {
   top: "inception_5a/3x3_reduce"
   name: "inception_5a/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 160
     kernel_size: 1
@@ -1597,10 +1597,10 @@ layer {
   top: "inception_5a/3x3"
   name: "inception_5a/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 320
     pad: 1
@@ -1626,10 +1626,10 @@ layer {
   top: "inception_5a/5x5_reduce"
   name: "inception_5a/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 32
     kernel_size: 1
@@ -1654,10 +1654,10 @@ layer {
   top: "inception_5a/5x5"
   name: "inception_5a/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     pad: 2
@@ -1695,10 +1695,10 @@ layer {
   top: "inception_5a/pool_proj"
   name: "inception_5a/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     kernel_size: 1
@@ -1732,10 +1732,10 @@ layer {
   top: "inception_5b/1x1"
   name: "inception_5b/1x1"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 384
     kernel_size: 1
@@ -1760,10 +1760,10 @@ layer {
   top: "inception_5b/3x3_reduce"
   name: "inception_5b/3x3_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 192
     kernel_size: 1
@@ -1788,10 +1788,10 @@ layer {
   top: "inception_5b/3x3"
   name: "inception_5b/3x3"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 384
     pad: 1
@@ -1817,10 +1817,10 @@ layer {
   top: "inception_5b/5x5_reduce"
   name: "inception_5b/5x5_reduce"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 48
     kernel_size: 1
@@ -1845,10 +1845,10 @@ layer {
   top: "inception_5b/5x5"
   name: "inception_5b/5x5"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     pad: 2
@@ -1886,10 +1886,10 @@ layer {
   top: "inception_5b/pool_proj"
   name: "inception_5b/pool_proj"
   type: "Convolution"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   convolution_param {
     num_output: 128
     kernel_size: 1
@@ -1943,10 +1943,10 @@ layer {
   top: "loss3/classifier"
   name: "loss3/classifier-For200"
   type: "InnerProduct"
-  blobs_lr: 1
-  blobs_lr: 2
-  weight_decay: 1
-  weight_decay: 0
+  param { lr_mult: 1 decay_mult: 1}
+  param { lr_mult: 2 decay_mult: 0}
+  
+  
   inner_product_param {
     num_output: 200
     weight_filler {
