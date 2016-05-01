@@ -1,0 +1,15 @@
+net: "models/action_recognition/VGG16-flow.prototxt"
+test_iter: 170
+test_interval: 1000
+base_lr: 0.005
+lr_policy: "step"
+gamma: 0.1
+stepsize: 10000
+display: 20
+max_iter: 30000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 1000
+snapshot_prefix: "models/action_recognition/snapshot/AC_VGG16_FLOW_SPLIT1"
+iter_size: 3
+test_initialization: true
