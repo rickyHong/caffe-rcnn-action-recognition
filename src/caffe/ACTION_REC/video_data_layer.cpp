@@ -167,7 +167,7 @@ bool VideoDataLayer<Dtype>::ReadSegmentRGBToDatum(const string& filename, const 
     for (int i = 0; i < offsets.size(); ++i){
         int offset = offsets[i];
         for (int file_id = 1; file_id < length+1; ++file_id){
-            sprintf(tmp,"image_%08d.jpg",int(file_id+offset));
+            sprintf(tmp,"image_%08d.jpg",int(file_id+offset-1));
             string filename_t = filename + "/" + tmp;
             cv::Mat cv_img_origin = cv::imread(filename_t, cv_read_flag);
             if (!cv_img_origin.data){
