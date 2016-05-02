@@ -1942,13 +1942,11 @@ layer {
 }
 layer {
   bottom: "pool5/7x7_s1"
-  top: "loss3/classifier-For200"
+  top: "loss3/classifier"
   name: "loss3/classifier-For200"
   type: "InnerProduct"
   param { lr_mult: 1 decay_mult: 1}
   param { lr_mult: 2 decay_mult: 0}
-  
-  
   inner_product_param {
     num_output: 200
     weight_filler {
@@ -1963,14 +1961,14 @@ layer {
 layer {
   name: "loss"
   type: "SoftmaxWithLoss"
-  bottom: "loss3/classifier-For200"
+  bottom: "loss3/classifier"
   bottom: "label"
   top: "loss"
 }
 layer {
   name: "accuracy"
   type: "Accuracy"
-  bottom: "loss3/classifier-For200"
+  bottom: "loss3/classifier"
   bottom: "label"
   top: "accuracy"
   include {
