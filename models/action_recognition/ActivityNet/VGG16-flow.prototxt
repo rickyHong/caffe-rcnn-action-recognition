@@ -5,7 +5,7 @@ layer {
   top: "data"
   top: "label"
   video_data_param {
-    source: "examples/action_recognition/dataset_file_examples/train_flow_split1.txt"
+    source: "examples/action_recognition/dataset_file_examples/actnet_train_clip.txt"
     batch_size: 22
     new_length: 10
     num_segments: 1
@@ -15,11 +15,11 @@ layer {
     crop_size: 224
     mirror: true
     fix_crop: true
-    multi_scale: true
-    max_distort: 1
+	multi_scale: true
+	max_distort: 1
     scale_ratios: [1,.875,.75]
     is_flow: true
-    mean_value: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128]
+	mean_value: [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128]
   }
   include: { phase: TRAIN }
 }
@@ -29,7 +29,7 @@ layer {
   top: "data"
   top: "label"
   video_data_param {
-    source: "examples/action_recognition/dataset_file_examples/val_flow_split1.txt"
+    source: "examples/action_recognition/dataset_file_examples/actnet_vali_clip.txt"
     batch_size: 5
     new_length: 10
     num_segments: 1
@@ -501,7 +501,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 101
+    num_output: 200
     weight_filler {
       type: "gaussian"
 	  std: 0.001
