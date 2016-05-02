@@ -907,7 +907,7 @@ layer {
   }
 }
 layer {
-  name: "loss1/classifier"
+  name: "loss1/classifier-For200"
   type: "InnerProduct"
   bottom: "loss1/fc"
   top: "loss1/classifier"
@@ -920,7 +920,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 1000
+    num_output: 200
     weight_filler {
       type: "xavier"
     }
@@ -1670,7 +1670,7 @@ layer {
   }
 }
 layer {
-  name: "loss2/classifier"
+  name: "loss2/classifier-For200"
   type: "InnerProduct"
   bottom: "loss2/fc"
   top: "loss2/classifier"
@@ -1683,7 +1683,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 1000
+    num_output: 200
     weight_filler {
       type: "xavier"
     }
@@ -2386,7 +2386,7 @@ layer {
   name: "loss3/classifier-For200"
   type: "InnerProduct"
   bottom: "pool5/7x7_s1"
-  top: "loss3/classifier-For200"
+  top: "loss3/classifier"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -2409,18 +2409,30 @@ layer {
 layer {
   name: "loss"
   type: "SoftmaxWithLoss"
-  bottom: "loss3/classifier-For200"
+  bottom: "loss3/classifier"
   bottom: "label"
   top: "loss"
 } 
 layer {
   name: "accuracy"
   type: "Accuracy"
-  bottom: "loss3/classifier-For200"
+  bottom: "loss3/classifier"
   bottom: "label"
-  top: "accuracy"
+  top: "loss3/top-1"
   include {
     phase: TEST
   }
 }
-
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "loss3/classifier"
+  bottom: "label"
+  top: "loss3/top-5"
+  include {
+    phase: TEST
+  }
+  accuracy_param {
+    top_k: 5
+  }
+}

@@ -30,7 +30,7 @@ layer {
   top: "data"
   top: "label"
   video_data_param {
-    source: "examples/action_recognition/dataset_file_examples/actnet_val_clip.txt"
+    source: "examples/action_recognition/dataset_file_examples/actnet_vali_clip.txt"
     batch_size: 5
     new_length: 1
     new_height: 256
@@ -2377,10 +2377,10 @@ layer {
 }
 
 layer {
-  name: "fc101"
+  name: "fc200"
   type: "InnerProduct"
   bottom: "fc1000"
-  top: "fc101"
+  top: "fc200"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -2405,14 +2405,14 @@ layer {
 layer {
   name: "loss"
   type: "SoftmaxWithLoss"
-  bottom: "fc101"
+  bottom: "fc200"
   bottom: "label"
   top: "loss"
 }
 layer {
   name: "accuracy"
   type: "Accuracy"
-  bottom: "fc101"
+  bottom: "fc200"
   bottom: "label"
   top: "accuracy"
 }
