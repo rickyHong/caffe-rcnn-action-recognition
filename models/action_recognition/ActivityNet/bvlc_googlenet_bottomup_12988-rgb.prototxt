@@ -1971,7 +1971,4 @@ layer {
   bottom: "loss3/classifier"
   bottom: "label"
   top: "accuracy"
-  include {
-    phase: TEST
-  }
 }
