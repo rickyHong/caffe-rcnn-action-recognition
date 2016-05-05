@@ -336,7 +336,8 @@ void Solver<Dtype>::Solve(const char* resume_file) {
 
     UpdateSmoothedLoss(loss, start_iter, average_loss);
 
-    LOG(INFO) << "Iteration " << iter_ << ", loss = " << smoothed_loss_;
+    LOG(INFO) << "Iteration " << iter_ 
+        << " / " << param_.max_iter() << ", loss = " << smoothed_loss_;
   }
   if (param_.test_interval() && iter_ % param_.test_interval() == 0) {
     TestAll();

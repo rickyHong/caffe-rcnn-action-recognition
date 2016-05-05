@@ -1,50 +1,9 @@
 name: "CUHK_Action_SpatialNet"
-layer {
-  name: "data"
-  type: "VideoData"
-  top: "data"
-  top: "label"
-  video_data_param {
-    source: "examples/action_recognition/dataset_file_examples/actnet_train_clip.txt"
-    batch_size: 16
-    new_width: 340
-    new_height: 256
-    new_length: 1
-    num_segments: 1
-    modality: RGB
-  }
-  transform_param{
-    crop_size: 224
-    mirror: true
-    fix_crop: true
-    multi_scale: true
-    max_distort: 1
-    scale_ratios: [1,.875,.75,.66]
-    mean_value: [104, 117, 123]
-  }
-  include: { phase: TRAIN }
-}
-layer {
-  name: "data"
-  type: "VideoData"
-  top: "data"
-  top: "label"
-  video_data_param {
-    source: "examples/action_recognition/dataset_file_examples/actnet_vali_clip.txt"
-    batch_size: 25
-    new_length: 1
-    new_height: 256
-    new_width: 340
-    num_segments: 1
-    modality: RGB
-  }
-  transform_param{
-    crop_size: 224
-    mirror: false
-    mean_value: [104, 117, 123]
-  }
-  include: { phase: TEST }
-}
+input: "data"
+input_dim: 50
+input_dim: 3
+input_dim: 224
+input_dim: 224
 layer {
   name: "conv1_1"
   type: "Convolution"
@@ -512,16 +471,8 @@ layer {
   }
 }
 layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
+  name: "prob"
+  type: "Softmax"
   bottom: "fc8"
-  bottom: "label"
-  top: "loss"
-}
-layer {
-  name: "accuracy"
-  type: "Accuracy"
-  bottom: "fc8"
-  bottom: "label"
-  top: "accuracy"
+  top: "prob"
 }
