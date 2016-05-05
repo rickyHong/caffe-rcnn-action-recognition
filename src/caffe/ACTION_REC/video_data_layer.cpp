@@ -34,7 +34,7 @@ void VideoDataLayer<Dtype>:: DataLayerSetUp(const vector<Blob<Dtype>*>& bottom, 
     int length;
     int zero_count = 0;
     while (infile >> filename >> length >> label){
-        if (length == 0){
+        if (length < new_length){
             zero_count ++;
             continue;
         }
@@ -238,10 +238,10 @@ bool VideoDataLayer<Dtype>::ReadSegmentFlowToDatum(const string& filename, const
     for (int i = 0; i < offsets.size(); ++i){
         int offset = offsets[i];
         for (int file_id = 1; file_id < length+1; ++file_id){
-            sprintf(tmp,"flow_x_%08d.jpg",int(file_id+offset-1));
+            sprintf(tmp,"flow_x_%08d.jpg",int(file_id+offset));
             string filename_x = filename + "/" + tmp;
             cv::Mat cv_img_origin_x = cv::imread(filename_x, CV_LOAD_IMAGE_GRAYSCALE);
-            sprintf(tmp,"flow_y_%08d.jpg",int(file_id+offset-1));
+            sprintf(tmp,"flow_y_%08d.jpg",int(file_id+offset));
             string filename_y = filename + "/" + tmp;
             cv::Mat cv_img_origin_y = cv::imread(filename_y, CV_LOAD_IMAGE_GRAYSCALE);
             if (!cv_img_origin_x.data || !cv_img_origin_y.data){
