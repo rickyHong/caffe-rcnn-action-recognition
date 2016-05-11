@@ -12,7 +12,7 @@ disp('ADD Caffe Mex Done');
 model_def_file = 'VGG16-RGB-Test.prototxt';
 model_file = 'AC_VGG16_Activity_iter_10000.caffemodel';
 mean_file = '../matlab/rgb_mean.mat';
-gpu_id = 1;
+gpu_id = 7;
 
 caffe.reset_all();
 caffe.set_mode_gpu();
@@ -24,20 +24,24 @@ net = caffe.Net(model_def_file, model_file, 'test');
 label = label + 1;
 %label = Dataset.test1_label;
 %videos = Dataset.test1;
-predict = zeros( size(label,1) , 1 );
+predict = zeros( size(label,1) , 200 );
 fprintf('Total test videso : %d \n',size(label,1));
 
 accur = 0.0;
+assert(size(label,1) == size(videos,1));
 for index = 1:size(videos,1)
     tic;
     rgb_video = ['../../../Val_Extract/' , videos{index} ];
     spatial_prediction = ActionSpatialPrediction(rgb_video, mean_file, net);
     %[ ~ , predict(index) ] = get_ID( spatial_prediction , 3 );
     spatial_prediction = sum(spatial_prediction, 2);
-    [~, predict(index)] = max(spatial_prediction);
-    accur = accur + ( predict(index) == label(index) );
-    fprintf('%05d videos predict done in %.3f s :=%.4f || %03d vs %03d \n', index , toc , accur / index, predict(index),label(index));
+    predict(index, : ) = spatial_prediction;
+    [~, predict_cur] = max(spatial_prediction);
+    %[~, predict(index)] = max(spatial_prediction);
+    accur = accur + ( predict_cur == label(index) );
+    fprintf('%05d videos predict done in %.3f s :=%.4f || %03d vs %03d \n', index , toc , accur / index, predict_cur,label(index));
 end
 
+save('VGG-Val-Full-Predict.mat','predict','videos','label','-v7.3');
 fprintf('Accuracy : %.4f\n' , accur / size(videos,1) );
 caffe.reset_all();
