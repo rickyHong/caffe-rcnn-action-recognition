@@ -1,0 +1,11 @@
+{
+ "test_scales": "600",
+ "test_max_size": "1000",
+ "test_rpn_nms_thresh": "0.7",
+ "test_rpn_pre_nms_top_n": "12000",
+ "test_rpn_post_nms_top_n": "300",
+ "test_rpn_min_size": "16",
+
+ "test_score_thresh": "0.0",
+ "n_classes": "21"
+}

@@ -8,11 +8,11 @@ lr_policy: "step"
 gamma: 0.1
 momentum: 0.9
 stepsize: 60000
-max_iter: 80000
+max_iter: 120000
 display: 20
 average_loss: 100
 weight_decay: 0.0005
 
-snapshot: 0
+snapshot: 10000
 snapshot_prefix: "models/FRCNN/snapshot/zf_rpn"
 iter_size: 1

@@ -202,15 +202,19 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
 
   Dtype bbox_outside_weight =  1.0 / (get_equal_idx(labels, 0).size()
                                       + get_equal_idx(labels, 1).size());
-  vector<Dtype> bbox_outside_weight_array(4, bbox_outside_weight);
+  //vector<Dtype> bbox_outside_weight_array(4, bbox_outside_weight);
   vector<Point4f<Dtype> > bbox_outside_weights(n_anchors);
   for (int i = 0; i < n_anchors; i++) {
     if (labels[i] >= 0) {
       //memcpy(bbox_outside_weights[i].Point, &bbox_outside_weight_array[0], 4 * sizeof(float));
-      bbox_outside_weights[i].Point[0] = bbox_outside_weight_array[0];
-      bbox_outside_weights[i].Point[1] = bbox_outside_weight_array[1];
-      bbox_outside_weights[i].Point[2] = bbox_outside_weight_array[2];
-      bbox_outside_weights[i].Point[3] = bbox_outside_weight_array[3];
+      //bbox_outside_weights[i].Point[0] = bbox_outside_weight_array[0];
+      //bbox_outside_weights[i].Point[1] = bbox_outside_weight_array[1];
+      //bbox_outside_weights[i].Point[2] = bbox_outside_weight_array[2];
+      //bbox_outside_weights[i].Point[3] = bbox_outside_weight_array[3];
+      bbox_outside_weights[i].Point[0] = bbox_outside_weight;
+      bbox_outside_weights[i].Point[1] = bbox_outside_weight;
+      bbox_outside_weights[i].Point[2] = bbox_outside_weight;
+      bbox_outside_weights[i].Point[3] = bbox_outside_weight;
     }
   }
 

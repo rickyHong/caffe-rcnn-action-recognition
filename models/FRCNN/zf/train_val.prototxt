@@ -261,6 +261,8 @@ layer {
   propagate_down: 0
   propagate_down: 0
 }
+
+#=================RPN loss==================
 layer {
   name: "rpn_loss_cls"
   type: "SoftmaxWithLoss"

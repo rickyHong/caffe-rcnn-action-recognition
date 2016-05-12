@@ -3,9 +3,9 @@
 BUILD=build/examples/FRCNN/demo_frcnn_api.bin
 
 $BUILD --gpu 0 \
-       --model models/FRCNN/zf/test.prototxt \
-       --weights models/FRCNN/zf_faster_rcnn_final.caffemodel \
+       --model models/FRCNN/vgg16/test.prototxt \
+       --weights models/FRCNN/VGG16_faster_rcnn_final.caffemodel \
        --default_c examples/FRCNN/config/default_config.json \
-       --override_c examples/FRCNN/config/demo_config.json \
+       --override_c examples/FRCNN/config/voc_config.json \
        --image_dir examples/FRCNN/images/  \
        --out_dir examples/FRCNN/results/ 

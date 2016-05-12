@@ -34,7 +34,9 @@ int main(int argc, char** argv){
       "  --model        file    protocol buffer text file\n"
       "  --weights      file    Trained Model\n"
       "  --default_c    file    Default Config File\n"
-      "  --override_c   file    Override Config File");
+      "  --override_c   file    Override Config File"
+      "  --image_dir    file    input image dir \n"
+      "  --out_dir      file    output image dir ");
   // Run tool or show usage.
   caffe::GlobalInit(&argc, &argv);
   CHECK( FLAGS_gpu.size() == 0 || FLAGS_gpu.size() == 1 ) << "Can only support one gpu or none";
@@ -57,16 +59,32 @@ int main(int argc, char** argv){
   DLOG(INFO) << "Test Image Dir : " << image_dir << "  , have " << images.size() << " pictures!";
   DLOG(INFO) << "Output Dir Is : " << out_dir;
   for (size_t index = 0; index < images.size(); ++index) {
+    DLOG(INFO) << std::endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl
+        << "Demo for " << images[index];
     cv::Mat image = cv::imread(image_dir+images[index]);
     time_.Start();
     detector.predict(image, results);
     LOG(INFO) << "Predict " << images[index] << " cost " << time_.MilliSeconds() << " ms."; 
     LOG(INFO) << "There are " << results.size() << " objects in picture.";
     for (size_t obj = 0; obj < results.size(); obj++) {
-        LOG(INFO) << results[obj].to_string();
+      LOG(INFO) << results[obj].to_string();
     }
-    caffe::Frcnn::vis_detections(image, results, caffe::Frcnn::LoadVocClass() );
-    cv::imwrite(out_dir+images[index], image);
+    for (int label = 0; label < caffe::Frcnn::FrcnnParam::n_classes; label++) {
+      std::vector<caffe::Frcnn::BBox<float> > cur_res;
+      for (size_t idx = 0; idx < results.size(); idx++) {
+        if (results[idx].id == label) {
+          cur_res.push_back( results[idx] );
+        }
+      }
+      if (cur_res.size() == 0) continue;
+      cv::Mat ori ; 
+      image.convertTo(ori, CV_32FC3);
+      caffe::Frcnn::vis_detections(ori, cur_res, caffe::Frcnn::LoadVocClass() );
+      std::string name = out_dir+images[index];
+      char xx[100];
+      sprintf(xx, "%s_%s.jpg", name.c_str(), caffe::Frcnn::GetClassName(caffe::Frcnn::LoadVocClass(),label).c_str());
+      cv::imwrite(std::string(xx), ori);
+    }
   }
   return 0;
 }

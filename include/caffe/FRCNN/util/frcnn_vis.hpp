@@ -25,7 +25,17 @@ inline std::map<int,string> LoadVocClass(){
   return answer;
 }
 
-inline std::map<int,string> LoadRpnClass(){
+inline std::string GetClassName(const std::map<int,std::string> CLASS, int label) {
+  if( CLASS.find(label) == CLASS.end() ){
+    std::ostringstream text;
+    text << "Unknow_Class_" << label;
+    return text.str();
+  } else {
+    return CLASS.find(label)->second;
+  }
+}
+
+inline std::map<int,string> LoadRpnClass() {
   std::map<int,string> answer;
   answer[0] = "background";
   answer[1] = "proposal";

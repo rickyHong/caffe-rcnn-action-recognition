@@ -222,12 +222,12 @@ layer {
   reshape_param { shape { dim: 0 dim: 18 dim: -1 dim: 0 } }
 }
 layer {
-  name: "proposal"
-  type: "FrcnnProposal"
-  bottom: "rpn_cls_prob_reshape"
-  bottom: "rpn_bbox_pred"
-  bottom: "im_info"
-  top: "rois"
+  name: 'proposal'
+  type: 'FrcnnProposal'
+  bottom: 'rpn_cls_prob_reshape'
+  bottom: 'rpn_bbox_pred'
+  bottom: 'im_info'
+  top: 'rois'
 }
 
 #========= RCNN ============

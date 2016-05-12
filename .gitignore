@@ -95,5 +95,6 @@ CURRENT
 MANIFEST-*
 
 #Xuanyi Add
-examples/FRCNN_OLD/result.jpg
+examples/FRCNN_OLD/results/*.jpg
+examples/FRCNN_OLD/results/*.txt
 examples/*.log

@@ -245,6 +245,7 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
     cv::flip(src, src, 1); // Flip
   }
   CHECK(src.isContinuous()) << "Warning : cv::Mat src is not Continuous !";
+  CHECK(src.depth() == CV_32F) << "Image data type must be float 32 type";
   read_time += timer.MicroSeconds();
 
   timer.Start();

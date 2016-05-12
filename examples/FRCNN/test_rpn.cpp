@@ -16,10 +16,14 @@ DEFINE_string(default_c, "",
     "Default config file path.");
 DEFINE_string(override_c, "", 
     "Override config file path.");
-DEFINE_string(image_dir, "",
-    "Optional;Test images Dir."); 
-DEFINE_string(out_dir, "",
-    "Optional;Output images Dir."); 
+DEFINE_string(image_list, "",
+    "Optional;Test images list."); 
+DEFINE_string(image_root, "",
+    "Optional;Test images root directory."); 
+DEFINE_string(out_file, "",
+    "Optional;Output images file."); 
+
+inline int INT(float x) { return int(x); };
 
 int main(int argc, char** argv){
   // Print output to stderr (while still logging).
@@ -35,8 +39,9 @@ int main(int argc, char** argv){
       "  --weights      file    Trained Model\n"
       "  --default_c    file    Default Config File\n"
       "  --override_c   file    Override Config File"
-      "  --image_dir    file    input image dir \n"
-      "  --out_dir      file    output image dir ");
+      "  --image_list   file    input image list\n"
+      "  --image_root   file    input image dir\n"
+      "  --out_file     file    output amswer file");
   // Run tool or show usage.
   caffe::GlobalInit(&argc, &argv);
   CHECK( FLAGS_gpu.size() == 0 || FLAGS_gpu.size() == 1 ) << "Can only support one gpu or none";
@@ -49,41 +54,40 @@ int main(int argc, char** argv){
   std::string default_config_file    = FLAGS_default_c.c_str();
   std::string override_config_file   = FLAGS_override_c.c_str();
 
-  std::string image_dir = FLAGS_image_dir.c_str();
-  std::string out_dir = FLAGS_out_dir.c_str();
-  std::vector<std::string> images = caffe::Frcnn::get_file_list(image_dir, ".jpg");
+  std::string image_list = FLAGS_image_list.c_str();
+  std::string image_root = FLAGS_image_root.c_str();
+  std::string out_file = FLAGS_out_file.c_str();
+
   FRCNN_API::Rpn_Det detector(proto_file, model_file, default_config_file, override_config_file, gpu_id); 
-  
   std::vector<caffe::Frcnn::BBox<float> > results;
-  caffe::Timer time_;
-  DLOG(INFO) << "Test Image Dir : " << image_dir << "  , have " << images.size() << " pictures!";
-  DLOG(INFO) << "Output Dir Is : " << out_dir;
-  for (size_t index = 0; index < images.size(); ++index) {
-    cv::Mat image = cv::imread(image_dir+images[index]);
-    time_.Start();
-    detector.predict(image, results);
-    LOG(INFO) << "Predict " << images[index] << " cost " << time_.MilliSeconds() << " ms."; 
-    std::vector<caffe::Frcnn::BBox<float> > results_drop_low_confidence;
-    for (size_t obj = 0; obj < results.size(); obj++) {
-      if (results[obj].confidence >= caffe::Frcnn::FrcnnParam::test_score_thresh) {
-        results_drop_low_confidence.push_back( results[obj] );
-      }
+
+  LOG(INFO) << "image list is  : " << image_list;
+  LOG(INFO) << "output file is : " << out_file;
+  std::ifstream infile(image_list.c_str());
+  std::ofstream otfile(out_file.c_str());
+  std::string hash;
+  int id;
+  while ( infile >> hash >> id ) {
+    CHECK(hash.size() > 0);
+    CHECK_EQ(hash[0], '#') << "Hash value error";
+    std::string image;   infile >> image;
+    LOG(INFO) << "Handle " << id << " th image : " << image;
+    int ignore_num;
+    infile >> ignore_num;
+    for (int index = 0; index < ignore_num; index++) {
+      int label, x1, y1, x2, y2;
+      infile >> label >> x1 >> y1 >> x2 >> y2;
     }
-    results = results_drop_low_confidence;
-    LOG(INFO) << "There are " << results.size() << " objects in picture.";
+    cv::Mat cv_image = cv::imread(image_root+image);
+    detector.predict(cv_image, results);
+    otfile << hash << " " << id << std::endl;
+    otfile << image << std::endl;
+    otfile << results.size() << std::endl;
     for (size_t obj = 0; obj < results.size(); obj++) {
-        LOG(INFO) << results[obj].to_string();
-    }
-    
-    for (size_t obj = 0; obj < results.size(); obj++) {
-      cv::Mat ori ; 
-      image.convertTo(ori, CV_32FC3);
-      caffe::Frcnn::vis_detections(ori, results[obj], caffe::Frcnn::LoadRpnClass() );
-      std::string name = out_dir+images[index];
-      char xx[100];
-      sprintf(xx, "%s_%03d.jpg", name.c_str(), (int)obj);
-      cv::imwrite(std::string(xx), ori);
+      otfile << results[obj].id << "  " << INT(results[obj][0]) << " " << INT(results[obj][1]) << " " << INT(results[obj][2]) << " " << INT(results[obj][3]) << "     " << results[obj].confidence<< std::endl;
     }
   }
+  infile.close();
+  otfile.close();
   return 0;
 }

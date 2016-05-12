@@ -104,6 +104,8 @@ void Rpn_Det::predict(const cv::Mat &img_in, std::vector<caffe::Frcnn::BBox<floa
   for (int i = 0; i < box_num; i++) { 
     float score = scores->data_at(i, 0, 0, 0);
 
+    if (score < caffe::Frcnn::FrcnnParam::test_score_thresh) break;
+ 
     Point4f<float> roi(rois->cpu_data()[(i * 5) + 1]/scale_factor,
             rois->cpu_data()[(i * 5) + 2]/scale_factor,
             rois->cpu_data()[(i * 5) + 3]/scale_factor,

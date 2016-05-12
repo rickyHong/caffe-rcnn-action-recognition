@@ -27,6 +27,6 @@
 
  "rng_seed": "3",
 
- "test_score_thresh": "0.2",
+ "test_score_thresh": "0.8",
  "n_classes": "21"
 }
