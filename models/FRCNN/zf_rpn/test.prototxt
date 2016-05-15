@@ -13,7 +13,8 @@ input_shape {
   dim: 3
 }
 
-# ------------------------ layer 1 -----------------------------
+#========= conv1-conv5 ============
+
 layer {
 	name: "conv1"
 	type: "Convolution"
@@ -75,7 +76,6 @@ layer {
 	bottom: "conv2"
 	top: "conv2"
 }
-
 layer {
 	name: "norm2"
 	type: "LRN"
@@ -156,28 +156,28 @@ layer {
 	top: "conv5"
 }
 
-#-----------------------layer +-------------------------
+#========= RPN ============
 
 layer {
-  name: "rpn_conv1"
+  name: "rpn_conv/3x3"
   type: "Convolution"
   bottom: "conv5"
-  top: "rpn_conv1"
+  top: "rpn/output"
   convolution_param {
     num_output: 256
     kernel_size: 3 pad: 1 stride: 1
   }
 }
 layer {
-  name: "rpn_relu1"
+  name: "rpn_relu/3x3"
   type: "ReLU"
-  bottom: "rpn_conv1"
-  top: "rpn_conv1"
+  bottom: "rpn/output"
+  top: "rpn/output"
 }
 layer {
   name: "rpn_cls_score"
   type: "Convolution"
-  bottom: "rpn_conv1"
+  bottom: "rpn/output"
   top: "rpn_cls_score"
   convolution_param {
     num_output: 18   # 2(bg/fg) * 9(anchors)
@@ -187,7 +187,7 @@ layer {
 layer {
   name: "rpn_bbox_pred"
   type: "Convolution"
-  bottom: "rpn_conv1"
+  bottom: "rpn/output"
   top: "rpn_bbox_pred"
   convolution_param {
     num_output: 36   # 4 * 9(anchors)
@@ -216,20 +216,6 @@ layer {
   top: 'rpn_cls_prob_reshape'
   reshape_param { shape { dim: 0 dim: 18 dim: -1 dim: 0 } }
 }
-#layer {
-#  name: 'proposal'
-#  type: 'Python'
-#  bottom: 'rpn_cls_prob_reshape'
-#  bottom: 'rpn_bbox_pred'
-#  bottom: 'im_info'
-#  top: 'rois'
-#  top: 'scores'
-#  python_param {
-#    module: 'rpn.proposal_layer'
-#    layer: 'ProposalLayer'
-#    param_str: "'feat_stride': 16"
-#  }
-#}
 layer {
   name: "proposal"
   type: "FrcnnProposal"

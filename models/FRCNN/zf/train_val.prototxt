@@ -193,7 +193,7 @@ layer {
 #========= RPN ============
 
 layer {
-  name: "rpn_conv1"
+  name: "rpn_conv/3x3"
   type: "Convolution"
   bottom: "conv5"
   top: "rpn_conv1"
@@ -207,7 +207,7 @@ layer {
   }
 }
 layer {
-  name: "rpn_relu1"
+  name: "rpn_relu/3x3"
   type: "ReLU"
   bottom: "rpn_conv1"
   top: "rpn_relu1"

@@ -12,6 +12,10 @@
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 
+#include "caffe/FRCNN/util/frcnn_utils.hpp"
+#include "caffe/FRCNN/util/frcnn_param.hpp"
+#include "caffe/FRCNN/util/frcnn_helper.hpp"
+
 namespace caffe {
 
 namespace Frcnn {
@@ -58,6 +62,30 @@ class FrcnnAnchorTargetLayer : public Layer<Dtype> {
   int config_n_anchors_;
   int feat_stride_;
   float border_;
+
+  Point4f<Dtype> _sum;
+  Point4f<Dtype> _squared_sum;
+  int _counts;
+// For Debug
+  inline pair<Point4f<Dtype>,Point4f<Dtype> > Get_Stds_Means(const vector<Point4f<Dtype> > targets, const vector<int> labels){
+    CHECK_EQ(targets.size(), labels.size());
+    const int n = targets.size();
+    for (int index = 0; index < n; index++) {
+      if (labels[index] == 1) {
+        this->_counts ++;
+        for (int j = 0; j < 4; j++) {
+          this->_sum[j] = this->_sum[j] + targets[index][j];
+          this->_squared_sum[j] = this->_squared_sum[j] + targets[index][j] * targets[index][j];
+        }
+      }
+    }
+    Point4f<Dtype> means, stds;
+    for (int j = 0; j < 4; j++) if (this->_counts > 0 ) {
+      means[j] = this->_sum[j] / this->_counts;
+      stds[j] = sqrt(this->_squared_sum[j] - means[j]*means[j]);
+    }
+    return make_pair(stds, means);
+  }
 };
 
 }  // namespace Frcnn

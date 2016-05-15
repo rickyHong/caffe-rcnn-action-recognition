@@ -34,8 +34,6 @@ layer {
   }
 }
 
-
-
 #========= conv1-conv5 ============
 
 layer {
@@ -192,10 +190,10 @@ layer {
 #========= RPN ============
 
 layer {
-  name: "rpn_conv1"
+  name: "rpn_conv/3x3"
   type: "Convolution"
   bottom: "conv5"
-  top: "rpn_conv1"
+  top: "rpn/output"
   param { lr_mult: 1.0 }
   param { lr_mult: 2.0 }
   convolution_param {
@@ -206,15 +204,15 @@ layer {
   }
 }
 layer {
-  name: "rpn_relu1"
+  name: "rpn_relu/3x3"
   type: "ReLU"
-  bottom: "rpn_conv1"
-  top: "rpn_relu1"
+  bottom: "rpn/output"
+  top: "rpn/output"
 }
 layer {
   name: "rpn_cls_score"
   type: "Convolution"
-  bottom: "rpn_relu1"
+  bottom: "rpn/output"
   top: "rpn_cls_score"
   param { lr_mult: 1.0 }
   param { lr_mult: 2.0 }
@@ -228,7 +226,7 @@ layer {
 layer {
   name: "rpn_bbox_pred"
   type: "Convolution"
-  bottom: "rpn_relu1"
+  bottom: "rpn/output"
   top: "rpn_bbox_pred"
   param { lr_mult: 1.0 }
   param { lr_mult: 2.0 }

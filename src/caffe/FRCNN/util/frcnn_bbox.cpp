@@ -77,8 +77,8 @@ void get_max_idxs(const vector<Dtype>& data, int n_col, vector<Dtype>& max_vals,
   if (n_col <= 0) {
     n_col = data.size();
   }
-  CHECK(data.size() % n_col == 0) << "wrong column numer";
-
+  CHECK_EQ(data.size() % n_col, 0) << "wrong column numer";
+  max_vals.clear(); max_idxs.clear();
   if (axis == 0) {
     for (size_t i = 0; i * n_col < data.size(); i++) {
       int max_idx;

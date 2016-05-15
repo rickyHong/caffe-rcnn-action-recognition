@@ -6,9 +6,9 @@
 // ------------------------------------------------------------------
 
 #include "caffe/FRCNN/frcnn_proposal_target_layer.hpp"
-#include "caffe/FRCNN/util/frcnn_helper.hpp"
 #include "caffe/FRCNN/util/frcnn_utils.hpp"
 #include "caffe/FRCNN/util/frcnn_param.hpp"
+#include "caffe/FRCNN/util/frcnn_helper.hpp"
 
 namespace caffe {
 
@@ -95,7 +95,7 @@ void FrcnnProposalTargetLayer<Dtype>::Forward_cpu(
 
   if (gt_boxes.size() > 0) {
     vector<Dtype> ious = get_ious(rois, gt_boxes);
-    get_max_idxs(ious, gt_boxes.size(), max_overlaps, argmax_overlaps);
+    get_max_idxs(ious, gt_boxes.size(), max_overlaps, argmax_overlaps, 0);
     for (int i = 0; i < n_rois; i++) {
       labels[i] = gt_labels[argmax_overlaps[i]];
     }

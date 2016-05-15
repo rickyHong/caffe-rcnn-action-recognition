@@ -22,8 +22,11 @@ DEFINE_string(image_root, "",
     "Optional;Test images root directory."); 
 DEFINE_string(out_file, "", 
     "Optional;Output images file."); 
+DEFINE_int32(max_per_image, 100,
+    "Limit to max_per_image detections *over all classes*");
 
-inline int INT(float x) { return int(x); };
+inline std::string INT(float x) { char A[100]; sprintf(A,"%.1f",x); return std::string(A);};
+inline std::string FloatToString(float x) { char A[100]; sprintf(A,"%.4f",x); return std::string(A);};
 
 int main(int argc, char** argv){
   // Print output to stderr (while still logging).
@@ -41,6 +44,7 @@ int main(int argc, char** argv){
       "  --override_c   file    Override Config File"
       "  --image_list   file    input image list\n"
       "  --image_root   file    input image dir\n"
+      "  --max_per_image   file limit to max_per_image detections\n"
       "  --out_file     file    output amswer file");
 
   // Run tool or show usage.
@@ -55,13 +59,15 @@ int main(int argc, char** argv){
   std::string default_config_file    = FLAGS_default_c.c_str();
   std::string override_config_file   = FLAGS_override_c.c_str();
 
-  std::string image_list = FLAGS_image_list.c_str();
-  std::string image_root = FLAGS_image_root.c_str();
-  std::string out_file = FLAGS_out_file.c_str();
+  const std::string image_list = FLAGS_image_list.c_str();
+  const std::string image_root = FLAGS_image_root.c_str();
+  const std::string out_file = FLAGS_out_file.c_str();
+
+  const int max_per_image = FLAGS_max_per_image;
 
   FRCNN_API::Detector detector(proto_file, model_file, default_config_file, override_config_file, gpu_id);   
-  std::vector<caffe::Frcnn::BBox<float> > results;
-LOG(INFO) << "image list is  : " << image_list;
+
+  LOG(INFO) << "image list is  : " << image_list;
   LOG(INFO) << "output file is : " << out_file;
   std::ifstream infile(image_list.c_str());
   std::ofstream otfile(out_file.c_str());
@@ -71,7 +77,6 @@ LOG(INFO) << "image list is  : " << image_list;
     CHECK(hash.size() > 0);
     CHECK_EQ(hash[0], '#') << "Hash value error";
     std::string image;   infile >> image;
-    LOG(INFO) << "Handle " << id << " th image : " << image;
     int ignore_num;
     infile >> ignore_num;
     for (int index = 0; index < ignore_num; index++) {
@@ -79,13 +84,38 @@ LOG(INFO) << "image list is  : " << image_list;
       infile >> label >> x1 >> y1 >> x2 >> y2;
     }
     cv::Mat cv_image = cv::imread(image_root+image);
+    std::vector<caffe::Frcnn::BBox<float> > results;
     detector.predict(cv_image, results);
     otfile << hash << " " << id << std::endl;
     otfile << image << std::endl;
+    
+    float image_thresh = 0;
+    if ( max_per_image > 0 ) {
+      std::vector<float> image_score ;
+      for (size_t obj = 0; obj < results.size(); obj++) {
+        image_score.push_back(results[obj].confidence) ;
+      }
+      std::sort(image_score.begin(), image_score.end(), std::greater<float>());
+      if ( max_per_image > image_score.size() ) {
+        if ( image_score.size() > 0 ) 
+          image_thresh = image_score.back();
+      } else {
+        image_thresh = image_score[max_per_image-1];
+      }
+    }
+    std::vector<caffe::Frcnn::BBox<float> > filtered_res;
+    for (size_t obj = 0; obj < results.size(); obj++) {
+      if ( results[obj].confidence >= image_thresh ) {
+        filtered_res.push_back( results[obj] );
+      }
+    }
+    results = filtered_res;
+    
     otfile << results.size() << std::endl;
     for (size_t obj = 0; obj < results.size(); obj++) {
-      otfile << results[obj].id << "  " << INT(results[obj][0]) << " " << INT(results[obj][1]) << " " << INT(results[obj][2]) << " " << INT(results[obj][3]) << "     " << results[obj].confidence<< std::endl;
+      otfile << results[obj].id << "  " << INT(results[obj][0]) << " " << INT(results[obj][1]) << " " << INT(results[obj][2]) << " " << INT(results[obj][3]) << "     " << FloatToString(results[obj].confidence) << std::endl;
     }
+    LOG(INFO) << "Handle " << id << " th image : " << image << ", with image_thresh : " << image_thresh << ", left " << results.size() << " boxes";
   }
   infile.close();
   otfile.close();

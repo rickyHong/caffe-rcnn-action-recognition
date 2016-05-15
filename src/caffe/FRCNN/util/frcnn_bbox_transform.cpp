@@ -56,6 +56,7 @@ template Point4f<double> bbox_transform(const Point4f<double>& ex_roi, const Poi
 
 template <typename Dtype>
 vector<Point4f<Dtype> > bbox_transform(const vector<Point4f<Dtype> >& ex_rois, const vector<Point4f<Dtype> >& gt_rois) {
+  CHECK_EQ(ex_rois.size(), gt_rois.size());
   vector<Point4f<Dtype> > transformed_bbox;
   for (size_t i = 0; i < gt_rois.size(); i++) {
     transformed_bbox.push_back(bbox_transform(ex_rois[i], gt_rois[i]));

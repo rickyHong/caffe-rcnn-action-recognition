@@ -24,6 +24,7 @@ DEFINE_string(out_file, "",
     "Optional;Output images file."); 
 
 inline int INT(float x) { return int(x); };
+inline std::string FloatToString(float x) { char A[100]; sprintf(A,"%.8f",x); return std::string(A);};
 
 int main(int argc, char** argv){
   // Print output to stderr (while still logging).
@@ -84,7 +85,7 @@ int main(int argc, char** argv){
     otfile << image << std::endl;
     otfile << results.size() << std::endl;
     for (size_t obj = 0; obj < results.size(); obj++) {
-      otfile << results[obj].id << "  " << INT(results[obj][0]) << " " << INT(results[obj][1]) << " " << INT(results[obj][2]) << " " << INT(results[obj][3]) << "     " << results[obj].confidence<< std::endl;
+      otfile << results[obj].id << "  " << INT(results[obj][0]) << " " << INT(results[obj][1]) << " " << INT(results[obj][2]) << " " << INT(results[obj][3]) << "     " << FloatToString(results[obj].confidence) << std::endl;
     }
   }
   infile.close();

@@ -10,11 +10,11 @@ momentum: 0.9
 stepsize: 50000
 max_iter: 70000
 display: 20
-average_loss: 100
+average_loss: 1
 weight_decay: 0.0005
 
 snapshot: 0
 snapshot_prefix: "./models/FRCNN/snapshot/zf_frcnn_end_to_end"
 iter_size: 2
 
-test_initialization: true
+test_initialization: false

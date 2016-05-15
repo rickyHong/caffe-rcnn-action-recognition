@@ -107,7 +107,7 @@ float get_scale_factor(int width, int height, int short_size, int max_long_size)
 
 template <typename Dtype>
 void get_max_idxs(const std::vector<Dtype>& data, int n_col, std::vector<Dtype>& min_vals,
-                  std::vector<int>& min_idxs, int axis = 0);
+                  std::vector<int>& min_idxs, int axis);
 
 template <typename Dtype>
 std::vector<int> get_equal_idx(const std::vector<Dtype> data_vector, Dtype target, int start_idx = 0, int stride = 1);

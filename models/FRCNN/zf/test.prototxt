@@ -163,7 +163,7 @@ layer {
 
 
 layer {
-  name: "rpn_conv1"
+  name: "rpn_conv/3x3"
   type: "Convolution"
   bottom: "conv5"
   top: "rpn_conv1"
@@ -173,7 +173,7 @@ layer {
   }
 }
 layer {
-  name: "rpn_relu1"
+  name: "rpn_relu/3x3"
   type: "ReLU"
   bottom: "rpn_conv1"
   top: "rpn_relu1"
@@ -215,19 +215,19 @@ layer {
   top: "rpn_cls_prob"
 }
 layer {
-  name: 'rpn_cls_prob_reshape'
-  type: 'Reshape'
-  bottom: 'rpn_cls_prob'
-  top: 'rpn_cls_prob_reshape'
+  name: "rpn_cls_prob_reshape"
+  type: "Reshape"
+  bottom: "rpn_cls_prob"
+  top: "rpn_cls_prob_reshape"
   reshape_param { shape { dim: 0 dim: 18 dim: -1 dim: 0 } }
 }
 layer {
-  name: 'proposal'
-  type: 'FrcnnProposal'
-  bottom: 'rpn_cls_prob_reshape'
-  bottom: 'rpn_bbox_pred'
-  bottom: 'im_info'
-  top: 'rois'
+  name: "proposal"
+  type: "FrcnnProposal"
+  bottom: "rpn_cls_prob_reshape"
+  bottom: "rpn_bbox_pred"
+  bottom: "im_info"
+  top: "rois"
 }
 
 #========= RCNN ============

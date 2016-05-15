@@ -111,6 +111,11 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
       infile >> label >> x1 >> y1 >> x2 >> y2;
 
 /////// CHECK LABEL
+      CHECK_GE(label, 0) << "illegal label : " << label << ", should >= 0 " ;
+      CHECK_LT(label, FrcnnParam::n_classes) << "illegal label : " << label << ", should < " << FrcnnParam::n_classes << "(n_classes)";
+      CHECK_GE(x2, x1) << "illegal coordinate : " << x1 << ", " << x2;
+      CHECK_GE(y2, y1) << "illegal coordinate : " << y1 << ", " << y2;
+
       vector<float> roi(FrcnnRoiDataLayer::NUM);
       roi[FrcnnRoiDataLayer::LABEL] = label;
       roi[FrcnnRoiDataLayer::X1] = x1;
@@ -216,7 +221,6 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   bool do_mirror = mirror && PrefetchRand() % 2;
   float max_short = scales[PrefetchRand() % scales.size()];
 
-  DLOG(ERROR) << "FrcnnRoiDataLayer load batch: " << image_database_[index];
   // label format:
   // labels x1 y1 x2 y2
   // special for frcnn , this first channel is -1 , width , height ,
@@ -282,19 +286,29 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   top_label[3] = 0;
   top_label[4] = 0;
 
+  CHECK(top_label[0] >= 100 && top_label[1] >= 100) << "!!!!!!!!!!! " << image_database_[index];
   const vector<vector<float> > rois = roi_database_[index];
   for (int i = 1; i < channels; i++) {
     CHECK_EQ(rois[i-1].size(), FrcnnRoiDataLayer::NUM);
     top_label[5 * i + 0] = rois[i-1][FrcnnRoiDataLayer::X1] * im_scale; // x1
     top_label[5 * i + 1] = rois[i-1][FrcnnRoiDataLayer::Y1] * im_scale; // y1
-    top_label[5 * i + 2] = rois[i-1][FrcnnRoiDataLayer::X2] * im_scale; // x2
-    top_label[5 * i + 3] = rois[i-1][FrcnnRoiDataLayer::Y2] * im_scale; // y2
+    top_label[5 * i + 2] = std::floor(rois[i-1][FrcnnRoiDataLayer::X2] * im_scale); // x2
+    top_label[5 * i + 3] = std::floor(rois[i-1][FrcnnRoiDataLayer::Y2] * im_scale); // y2
     if (do_mirror) {
       top_label[5 * i + 0] = src.cols - top_label[5 * i + 0];
       top_label[5 * i + 2] = src.cols - top_label[5 * i + 2];
       std::swap(top_label[5 * i + 0], top_label[5 * i + 2]);
     }
     top_label[5 * i + 4] = rois[i-1][FrcnnRoiDataLayer::LABEL];         // label
+    
+    // DEBUG
+    CHECK(top_label[5 * i + 0] >= 0 );
+    CHECK(top_label[5 * i + 1] >= 0 );
+    CHECK(top_label[5 * i + 2] <= top_label[1] ) << mirror << " row : " << src.rows << ",  col : " << src.cols << ", im_scale : " 
+            << im_scale << " | " << rois[i-1][FrcnnRoiDataLayer::X2] << " , " << top_label[5 * i + 2];
+    CHECK(top_label[5 * i + 3] <= top_label[0] ) << mirror << " row : " << src.rows << ",  col : " << src.cols << ", im_scale : " 
+            << im_scale << " | " << rois[i-1][FrcnnRoiDataLayer::Y2] << " , " << top_label[5 * i + 3];
+    
   }
 
   trans_time += timer.MicroSeconds();
@@ -307,7 +321,13 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
     ShuffleImages();
   }
 
+  CHECK(channels >= 1);
+
   batch_timer.Stop();
+  DLOG(ERROR) << "FrcnnRoiDataLayer load batch: " << image_database_[index] << " scale : " << top_label[2] << "[] GT_NUM : " << channels-1;
+  for (int i = 1; i < channels; i++) {
+    DLOG(ERROR) << "---------= " << top_label[5 * i + 0] << ", " << top_label[5 * i + 1] << ", " << top_label[5 * i + 2] << ", " << top_label[5 * i + 3];
+  }
   DLOG(INFO) << "Image Information: " << "height " << top_label[0] << " width "
              << top_label[1] << " scale " << top_label[2];
   DLOG(INFO) << "Ground Truth Boxes: " << channels-1 << " boxes";
@@ -336,6 +356,7 @@ void FrcnnRoiDataLayer<Dtype>::Forward_cpu(
     caffe_copy(batch->label_.count() - 5, batch->label_.cpu_data() + 5,
                top[2]->mutable_cpu_data());
   }
+  DLOG(INFO) << "Forward_FRCNN_ROI_DATA : " << top[2]->num() << ", " << top[2]->channels() << ", " << top[2]->height() << ", " << top[2]->width();
   this->prefetch_free_.push(batch);
 }
 
