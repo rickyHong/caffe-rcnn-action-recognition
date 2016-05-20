@@ -52,7 +52,7 @@ void FrcnnAnchorTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bott
 template <typename Dtype>
 void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   const vector<Blob<Dtype> *> &bottom, const vector<Blob<Dtype> *> &top) {
-  DLOG(ERROR) << "========== enter anchor target layer {} " << bottom[2]->cpu_data()[0] << ", " << bottom[2]->cpu_data()[1] << " , scales : " << bottom[2]->cpu_data()[2];
+  DLOG(ERROR) << "========== enter anchor target layer {} " << bottom[2]->cpu_data()[0] << ", " << bottom[2]->cpu_data()[1] << " , scales : " << bottom[2]->cpu_data()[2] << " {} height : " << bottom[0]->height() << " width : " << bottom[0]->width();
 
   //const Dtype *bottom_gt_bbox = bottom[1]->cpu_data();
   const Dtype *bottom_im_info = bottom[2]->cpu_data();
@@ -113,34 +113,32 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   // label: 1 is positive, 0 is negative, -1 is dont care
   vector<int> labels(n_anchors, -1);
 
-  vector<Dtype> max_overlaps;
-  vector<int> argmax_overlaps;
-  vector<Dtype> gt_max_overlaps;
-  vector<int> gt_argmax_overlaps;
+  vector<Dtype> max_overlaps(anchors.size(), -1);
+  vector<int> argmax_overlaps(anchors.size(), -1);
+  vector<Dtype> gt_max_overlaps(gt_boxes.size(), -1);
+  vector<int> gt_argmax_overlaps(gt_boxes.size(), -1);
 
-  if (gt_boxes.size() > 0) {
-    vector<Dtype> ious = get_ious(anchors, gt_boxes);
-    get_max_idxs(ious, gt_boxes.size(), max_overlaps, argmax_overlaps, 0);
-    get_max_idxs(ious, gt_boxes.size(), gt_max_overlaps, gt_argmax_overlaps, 1);
-    CHECK_EQ(max_overlaps.size(), argmax_overlaps.size());
-    CHECK_EQ(max_overlaps.size(), n_anchors);
-    CHECK_EQ(gt_max_overlaps.size(), gt_argmax_overlaps.size());
-    CHECK_EQ(gt_max_overlaps.size(), gt_boxes.size());
-    std::set<int> gt_argmax_set;
-    for (size_t i = 0; i < gt_max_overlaps.size(); i ++) {
-      if (gt_max_overlaps[i] < FrcnnParam::rpn_positive_overlap) {
-        DLOG(ERROR) << gt_max_overlaps[i] << ":gt--" << gt_boxes[i].to_string()
-                    << "  anchor--" << anchors[gt_argmax_overlaps[i]].to_string();
-      }
+  vector<vector<Dtype> > ious = get_ious(anchors, gt_boxes);
 
-      vector<int> tmp_idxs = get_equal_idx(ious, gt_max_overlaps[i], i, gt_max_overlaps.size());
-      for (int j = 0; j < tmp_idxs.size(); j ++) {
-        gt_argmax_set.insert(tmp_idxs[j]);
-      }
+  for (size_t ia = 0; ia < anchors.size(); ia++) {
+  for (size_t igt = 0; igt < gt_boxes.size(); igt++) {
+    if (ious[ia][igt] > max_overlaps[ia]) {
+      max_overlaps[ia] = ious[ia][igt];
+      argmax_overlaps[ia] = igt;
     }
-    gt_argmax_overlaps = std::vector<int>(gt_argmax_set.begin(), gt_argmax_set.end());
-  } else {
-    max_overlaps = vector<Dtype>(n_anchors, Dtype(0));
+    if (ious[ia][igt] > gt_max_overlaps[igt]) {
+      gt_max_overlaps[igt] = ious[ia][igt];
+      gt_argmax_overlaps[igt] = ia;
+    }
+  }
+  }
+
+//Debug
+  for (size_t i = 0; i < gt_max_overlaps.size(); i ++) {
+    if (gt_max_overlaps[i] < FrcnnParam::rpn_positive_overlap) {
+      DLOG(ERROR) << gt_max_overlaps[i] << ":gt--" << gt_boxes[i].to_string()
+          << "  anchor--" << anchors[gt_argmax_overlaps[i]].to_string();
+    }
   }
 
   if (FrcnnParam::rpn_clobber_positives==false) {
@@ -152,9 +150,14 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   }
   
   // fg label: for each gt, anchor with highest overlap
-  for (int i = 0; i < gt_argmax_overlaps.size() ; ++i) {
-    labels[gt_argmax_overlaps[i]] = 1;
+  for (int j = 0; j < gt_max_overlaps.size(); j ++) {
+    for (int i = 0; i < max_overlaps.size(); ++i) {
+      if ( gt_max_overlaps[j] - Dtype(1e-7) <= ious[i][j] ) {
+        labels[i] = 1;
+      }
+    }
   }
+
   // fg label: above threshold IOU
   for (int i = 0; i < max_overlaps.size(); ++i) {
     if (max_overlaps[i] >= FrcnnParam::rpn_positive_overlap) {
@@ -170,17 +173,20 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
     }
   }
 
-  DLOG(ERROR) << "label == 1  : " << get_equal_idx(labels, 1).size();
-  DLOG(ERROR) << "label == 0  : " << get_equal_idx(labels, 0).size();
-  DLOG(ERROR) << "label == -1 : " << get_equal_idx(labels, -1).size();
+  DLOG(ERROR) << "label == 1  : " << std::count(labels.begin(), labels.end(), 1);
+  DLOG(ERROR) << "label == 0  : " << std::count(labels.begin(), labels.end(), 0);
+  DLOG(ERROR) << "label == -1 : " << std::count(labels.begin(), labels.end(),-1);
   DLOG(ERROR) << "gt_argmax_overlaps: " << gt_argmax_overlaps.size();
 
   // subsample positive labels if we have too many
   int num_fg = FrcnnParam::rpn_fg_fraction * FrcnnParam::rpn_batchsize;
-  vector<int> fg_inds = get_equal_idx(labels, 1);
-
+  const int fg_inds_size = std::count(labels.begin(), labels.end(), 1);
   DLOG(ERROR) << "========== supress_positive labels";
-  if (fg_inds.size() > num_fg) {
+  if (fg_inds_size > num_fg) {
+    vector<int> fg_inds ;
+    for (size_t index = 0; index < labels.size(); index++ ) 
+      if (labels[index] == 1) fg_inds.push_back(index);
+
     std::set<int> ind_set;
     while (ind_set.size() < fg_inds.size() - num_fg) {
       int tmp_idx = caffe::caffe_rng_rand() % fg_inds.size();
@@ -194,8 +200,12 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   DLOG(ERROR) << "========== supress negative labels";
   // subsample negative labels if we have too many
   int num_bg = FrcnnParam::rpn_batchsize - get_equal_idx(labels, 1).size();
-  vector<int> bg_inds = get_equal_idx(labels, 0);
-  if (bg_inds.size() > num_bg) {
+  const int bg_inds_size = std::count(labels.begin(), labels.end(), 0);
+  if (bg_inds_size > num_bg) {
+    vector<int> bg_inds ;
+    for (size_t index = 0; index < labels.size(); index++ )
+      if (labels[index] == 0) bg_inds.push_back(index);
+
     std::set<int> ind_set;
     while (ind_set.size() < bg_inds.size() - num_bg) {
       int tmp_idx = caffe::caffe_rng_rand() % bg_inds.size();
@@ -206,25 +216,21 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
     }
   }
 
-  DLOG(ERROR) << "label == 1  : " << get_equal_idx(labels, 1).size();
-  DLOG(ERROR) << "label == 0  : " << get_equal_idx(labels, 0).size();
-  DLOG(ERROR) << "label == -1 : " << get_equal_idx(labels, -1).size();
-  CHECK_EQ(get_equal_idx(labels, 1).size(), std::count(labels.begin(), labels.end(), 1));
-  CHECK_EQ(get_equal_idx(labels, -1).size(), std::count(labels.begin(), labels.end(), -1));
-  CHECK_EQ(get_equal_idx(labels, 0).size(), std::count(labels.begin(), labels.end(), 0));
+  DLOG(ERROR) << "label == 1  : " << std::count(labels.begin(), labels.end(), 1);
+  DLOG(ERROR) << "label == 0  : " << std::count(labels.begin(), labels.end(), 0);
+  DLOG(ERROR) << "label == -1 : " << std::count(labels.begin(), labels.end(),-1);
 
   DLOG(ERROR) << "========== transfer bbox";
   vector<Point4f<Dtype> > bbox_targets;
-  if (gt_boxes.size() > 0) {
-    vector<Point4f<Dtype> > max_overlap_gt_boxes;
-    for (int i =0; i < argmax_overlaps.size(); i++) {
-      max_overlap_gt_boxes.push_back(gt_boxes[argmax_overlaps[i]]);
-    }
-    bbox_targets = bbox_transform(anchors, max_overlap_gt_boxes);
-    CHECK_EQ(bbox_targets.size(), n_anchors);
-  } else {
-    bbox_targets = vector<Point4f<Dtype> >(n_anchors, Point4f<Dtype>());
+  //vector<Point4f<Dtype> > max_overlap_gt_boxes;
+  for (int i =0; i < argmax_overlaps.size(); i++) {
+    //max_overlap_gt_boxes.push_back(gt_boxes[argmax_overlaps[i]]);
+    if (argmax_overlaps[i] < 0 )
+      bbox_targets.push_back(Point4f<Dtype>());
+    else 
+      bbox_targets.push_back( bbox_transform(anchors[i], gt_boxes[argmax_overlaps[i]] ) );
   }
+  //bbox_targets = bbox_transform(anchors, max_overlap_gt_boxes);
 
   vector<Point4f<Dtype> > bbox_inside_weights(n_anchors, Point4f<Dtype>());
   for (int i = 0; i < n_anchors; i++) {
@@ -235,6 +241,11 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
       bbox_inside_weights[i].Point[1] = FrcnnParam::rpn_bbox_inside_weights[1];
       bbox_inside_weights[i].Point[2] = FrcnnParam::rpn_bbox_inside_weights[2];
       bbox_inside_weights[i].Point[3] = FrcnnParam::rpn_bbox_inside_weights[3];
+    } else {
+      CHECK_EQ(bbox_inside_weights[i].Point[0], 0);
+      CHECK_EQ(bbox_inside_weights[i].Point[1], 0);
+      CHECK_EQ(bbox_inside_weights[i].Point[2], 0);
+      CHECK_EQ(bbox_inside_weights[i].Point[3], 0);
     }
   }
 
@@ -244,6 +255,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
     int num_examples = labels.size() - std::count(labels.begin(), labels.end(), -1);
     positive_weights = Dtype(1) / num_examples;
     negative_weights = Dtype(1) / num_examples;
+    CHECK_GT(num_examples, 0);
   } else {
     CHECK_LT(FrcnnParam::rpn_positive_weight, 1) << "ilegal rpn_positive_weight";
     CHECK_GT(FrcnnParam::rpn_positive_weight, 0) << "ilegal rpn_positive_weight";
@@ -277,25 +289,37 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   DLOG(ERROR) << "========== copy to top";
   // labels
   top[0]->Reshape(1, 1, config_n_anchors_ * height, width);
-  Dtype *top_data = top[0]->mutable_cpu_data();
-  Dtype fill = -1;
-  unmap(labels, top_data, inds_inside, fill, config_n_anchors_, height, width);
-
-  fill = 0;
   // bbox_targets
   top[1]->Reshape(1, config_n_anchors_ * 4, height, width);
-  top_data = top[1]->mutable_cpu_data();
-  unmap(bbox_targets, top_data, inds_inside, fill, 4 * config_n_anchors_, height, width);
-
   // bbox_inside_weights
   top[2]->Reshape(1, config_n_anchors_ * 4, height, width);
-  top_data = top[2]->mutable_cpu_data();
-  unmap(bbox_inside_weights, top_data, inds_inside, fill, 4 * config_n_anchors_, height, width);
-
   // bbox_outside_weights
   top[3]->Reshape(1, config_n_anchors_ * 4, height, width);
-  top_data = top[3]->mutable_cpu_data();
-  unmap(bbox_outside_weights, top_data, inds_inside, fill, 4 * config_n_anchors_, height, width);
+  
+  Dtype* top_labels = top[0]->mutable_cpu_data();
+  Dtype* top_bbox_targets = top[1]->mutable_cpu_data();
+  Dtype* top_bbox_inside_weights = top[2]->mutable_cpu_data();
+  Dtype* top_bbox_outside_weights = top[3]->mutable_cpu_data();
+  caffe_set(top[0]->count(), Dtype(-1), top[0]->mutable_cpu_data());
+  caffe_set(top[1]->count(), Dtype(0), top[1]->mutable_cpu_data());
+  caffe_set(top[2]->count(), Dtype(0), top[2]->mutable_cpu_data());
+  caffe_set(top[3]->count(), Dtype(0), top[3]->mutable_cpu_data());
+  
+
+  CHECK_EQ(inds_inside.size(), bbox_targets.size());
+  CHECK_EQ(inds_inside.size(), bbox_outside_weights.size());
+  CHECK_EQ(bbox_inside_weights.size(), bbox_outside_weights.size());
+  for (size_t index = 0; index < inds_inside.size(); index++) {
+    const int _anchor = inds_inside[index] / (height*width);
+    const int _height = (inds_inside[index] % (height*width) ) / width;
+    const int _width  = inds_inside[index] % width;
+    top_labels[ top[0]->offset(0,0,_anchor*height+_height,_width) ] = labels[index];
+    for (int cor = 0; cor < 4; cor++) {
+      top_bbox_targets        [ top[1]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_targets[index][cor];
+      top_bbox_inside_weights [ top[2]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_inside_weights[index][cor];
+      top_bbox_outside_weights[ top[3]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_outside_weights[index][cor];
+    }    
+  }
 }
 
 template <typename Dtype>

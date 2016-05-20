@@ -6,6 +6,6 @@ $BUILD --gpu 0 \
        --model models/FRCNN/vgg16_rpn/test.prototxt \
        --weights models/FRCNN/VGG16_faster_rcnn_final.caffemodel \
        --default_c examples/FRCNN/config/default_config.json \
-       --override_c examples/FRCNN/config/rpn_config.json \
+       --override_c examples/FRCNN/config/rpn_demo.json \
        --image_dir examples/FRCNN/images/  \
        --out_dir examples/FRCNN/results/ 

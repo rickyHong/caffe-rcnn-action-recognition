@@ -8,12 +8,12 @@ $BUILD --gpu 1 \
        --default_c examples/FRCNN/config/default_config.json \
        --override_c examples/FRCNN/config/voc_config.json \
        --image_root VOCdevkit/VOC2007/JPEGImages/ \
-       --image_list examples/FRCNN/dataset/voc2007_val.txt \
-       --out_file examples/FRCNN/results/voc2007_val_predict_frcnn.txt
+       --image_list examples/FRCNN/dataset/voc2007_test.txt \
+       --out_file examples/FRCNN/results/voc2007_test.frcnn
 
 CAL_RECALL=examples/FRCNN/calculate_voc_ap.py
 
-python $CAL_RECALL  --gt examples/FRCNN/dataset/voc2007_val.txt \
-            --answer examples/FRCNN/results/voc2007_val_predict_frcnn.txt \
-            --diff examples/FRCNN/dataset/voc2007_val.difficult \
+python $CAL_RECALL  --gt examples/FRCNN/dataset/voc2007_test.txt \
+            --answer examples/FRCNN/results/voc2007_test.frcnn \
+            --diff examples/FRCNN/dataset/voc2007_test.difficult \
             --overlap 0.5

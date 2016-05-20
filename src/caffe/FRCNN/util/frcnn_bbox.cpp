@@ -22,17 +22,27 @@ template float get_iou(const Point4f<float> &A, const Point4f<float> &B);
 template double get_iou(const Point4f<double> &A, const Point4f<double> &B);
 
 template <typename Dtype>
-vector<Dtype> get_ious(const vector<Point4f<Dtype> > &A, const vector<Point4f<Dtype> > &B) {
-  vector<Dtype> ious;
+vector<vector<Dtype> > get_ious(const vector<Point4f<Dtype> > &A, const vector<Point4f<Dtype> > &B) {
+  vector<vector<Dtype> >ious;
   for (size_t i = 0; i < A.size(); i++) {
-    for (size_t j = 0; j < B.size(); j++) {
-      ious.push_back(get_iou(A[i], B[j]));
-    }
+    ious.push_back(get_ious(A[i], B));
   }
   return ious;
 }
-template vector<float> get_ious(const vector<Point4f<float> > &A, const vector<Point4f<float> > &B);
-template vector<double> get_ious(const vector<Point4f<double> > &A, const vector<Point4f<double> > &B);
+template vector<vector<float> > get_ious(const vector<Point4f<float> > &A, const vector<Point4f<float> > &B);
+template vector<vector<double> > get_ious(const vector<Point4f<double> > &A, const vector<Point4f<double> > &B);
+
+template <typename Dtype>
+vector<Dtype> get_ious(const Point4f<Dtype> &A, const vector<Point4f<Dtype> > &B) {
+  vector<Dtype> ious;
+  for (size_t i = 0; i < B.size(); i++) {
+    ious.push_back(get_iou(A, B[i]));
+  }
+  return ious;
+}
+
+template vector<float> get_ious(const Point4f<float> &A, const vector<Point4f<float> > &B);
+template vector<double> get_ious(const Point4f<double> &A, const vector<Point4f<double> > &B);
 
 template <typename Dtype>
 void draw_bbox(cv::Mat &frame, const std::vector<BBox<Dtype> > &bboxs) {

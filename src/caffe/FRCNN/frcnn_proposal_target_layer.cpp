@@ -88,19 +88,22 @@ void FrcnnProposalTargetLayer<Dtype>::Forward_cpu(
   // label: 1 is positive, 0 is negative, -1 is dont care
   vector<int> labels(n_rois, 0);
 
-  vector<Dtype> max_overlaps;
-  vector<int> argmax_overlaps;
+  vector<Dtype> max_overlaps(n_rois, 0);
+  vector<int> argmax_overlaps(n_rois, -1);
 
   DLOG(ERROR) << "gt boxes size: " << gt_boxes.size();
 
-  if (gt_boxes.size() > 0) {
-    vector<Dtype> ious = get_ious(rois, gt_boxes);
-    get_max_idxs(ious, gt_boxes.size(), max_overlaps, argmax_overlaps, 0);
-    for (int i = 0; i < n_rois; i++) {
+  vector<vector<Dtype> > ious = get_ious(rois, gt_boxes);
+  for (int i = 0; i < n_rois; i++) {
+    for (size_t j = 0; j < gt_boxes.size(); j++) {
+      if (ious[i][j] >= max_overlaps[i]) {
+        max_overlaps[i] = ious[i][j];
+        argmax_overlaps[i] = j;
+      }
+    }
+    if (argmax_overlaps[i] >= 0) {
       labels[i] = gt_labels[argmax_overlaps[i]];
     }
-  } else {
-    max_overlaps = vector<Dtype>(n_rois, Dtype(0));
   }
 
   vector<int> fg_inds, bg_inds;

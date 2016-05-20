@@ -98,7 +98,10 @@ template <typename Dtype>
 Dtype get_iou(const Point4f<Dtype> &A, const Point4f<Dtype> &B);
 
 template <typename Dtype>
-std::vector<Dtype> get_ious(const std::vector<Point4f<Dtype> > &A, const std::vector<Point4f<Dtype> > &B);
+std::vector<vector<Dtype> > get_ious(const std::vector<Point4f<Dtype> > &A, const std::vector<Point4f<Dtype> > &B);
+
+template <typename Dtype>
+std::vector<Dtype> get_ious(const Point4f<Dtype> &A, const std::vector<Point4f<Dtype> > &B);
 
 template <typename Dtype>
 void draw_bbox(cv::Mat &frame, const std::vector<BBox<Dtype> > &bboxs);
