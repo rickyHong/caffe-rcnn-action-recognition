@@ -27,6 +27,7 @@
 //   'source' field specifies the window_file
 //   'crop_size' indicates the desired warped size
 // label start from 1
+// x1 y1 start from 1 , in the input file , so we -1 for every corrdinate
 
 namespace caffe {
 
@@ -93,7 +94,8 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
     image_path = root_folder + image_path;
 
     image_database_.push_back(image_path);
-    lines_.push_back(image_index);
+    //lines_.push_back(image_index);  // Change By DXY
+    lines_.push_back(image_database_.size()-1);
     if (cache_images_) {
       Datum datum;
       if (!ReadFileToDatum(image_path, &datum)) {
@@ -109,9 +111,10 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
     for (int i = 0; i < num_roi; ++i) {
       int label, x1, y1, x2, y2;
       infile >> label >> x1 >> y1 >> x2 >> y2;
+      x1 --; y1 --; x2 --; y2 --;
 
 /////// CHECK LABEL
-      CHECK_GE(label, 0) << "illegal label : " << label << ", should >= 0 " ;
+      CHECK_GE(label, 1) << "illegal label : " << label << ", should >= 1 " ;
       CHECK_LT(label, FrcnnParam::n_classes) << "illegal label : " << label << ", should < " << FrcnnParam::n_classes << "(n_classes)";
       CHECK_GE(x2, x1) << "illegal coordinate : " << x1 << ", " << x2;
       CHECK_GE(y2, y1) << "illegal coordinate : " << y1 << ", " << y2;
@@ -139,8 +142,7 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
   lines_id_ = 0;
 
   for (map<int, int>::iterator it = label_hist.begin(); it != label_hist.end(); ++it) {
-    LOG(INFO) << "class " << it->first << " has " << label_hist[it->first]
-              << " samples";
+    LOG(INFO) << "class " << it->first << " has " << label_hist[it->first] << " samples";
   }
 
   // image
@@ -159,8 +161,9 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
   CHECK_GT(max_long_, 0);
 
   top[0]->Reshape(batch_size, 3, max_short_, max_long_);
-  for (int i = 0; i < this->PREFETCH_COUNT; ++i)
+  for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
     this->prefetch_[i].data_.Reshape(batch_size, 3, max_short_, max_long_);
+  }
 
   LOG(INFO) << "output data size: " << top[0]->num() << ","
             << top[0]->channels() << "," << top[0]->height() << ","
@@ -218,7 +221,7 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   // Select id for batch -> <0 if fliped
   CHECK_LT(lines_id_, lines_.size()) << "select error line id";
   int index = lines_[lines_id_];
-  bool do_mirror = mirror && PrefetchRand() % 2;
+  bool do_mirror = mirror && PrefetchRand() % 2 && this->phase_ == TRAIN;
   float max_short = scales[PrefetchRand() % scales.size()];
 
   // label format:
@@ -249,7 +252,8 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
     cv::flip(src, src, 1); // Flip
   }
   CHECK(src.isContinuous()) << "Warning : cv::Mat src is not Continuous !";
-  CHECK(src.depth() == CV_32F) << "Image data type must be float 32 type";
+  CHECK_EQ(src.depth(), CV_32F) << "Image data type must be float 32 type";
+  CHECK_EQ(src.channels(), 3) << "Image data type must be 3 channels";
   read_time += timer.MicroSeconds();
 
   timer.Start();
@@ -283,32 +287,43 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   top_label[0] = src.rows; // height
   top_label[1] = src.cols; // width
   top_label[2] = im_scale; // im_scale: used to filter min size
-  top_label[3] = 0;
+  //top_label[3] = 0;
+  top_label[3] = index;  // For Debug....
   top_label[4] = 0;
 
-  CHECK(top_label[0] >= 100 && top_label[1] >= 100) << "!!!!!!!!!!! " << image_database_[index];
-  const vector<vector<float> > rois = roi_database_[index];
+  //CHECK(top_label[0] >= 100 && top_label[1] >= 100) << "!!!!!!!!!!! " << image_database_[index];
+  vector<vector<float> > rois = roi_database_[index];
+  if (do_mirror) {
+    for (int i = 0; i < rois.size(); i++) {
+      float old_x1 = rois[i][FrcnnRoiDataLayer::X1];
+      float old_x2 = rois[i][FrcnnRoiDataLayer::X2];
+      rois[i][FrcnnRoiDataLayer::X1] = cv_img.cols - old_x2 -1; 
+      rois[i][FrcnnRoiDataLayer::X2] = cv_img.cols - old_x1 -1; 
+      CHECK(rois[i][0] >= 0); 
+      CHECK(rois[i][2] >= rois[i][0]);
+      CHECK(rois[i][3] >= rois[i][1]);
+    }
+  }
+  CHECK_EQ(rois.size(), channels-1);
   for (int i = 1; i < channels; i++) {
     CHECK_EQ(rois[i-1].size(), FrcnnRoiDataLayer::NUM);
     top_label[5 * i + 0] = rois[i-1][FrcnnRoiDataLayer::X1] * im_scale; // x1
     top_label[5 * i + 1] = rois[i-1][FrcnnRoiDataLayer::Y1] * im_scale; // y1
-    top_label[5 * i + 2] = std::floor(rois[i-1][FrcnnRoiDataLayer::X2] * im_scale); // x2
-    top_label[5 * i + 3] = std::floor(rois[i-1][FrcnnRoiDataLayer::Y2] * im_scale); // y2
-    if (do_mirror) {
-      top_label[5 * i + 0] = src.cols - top_label[5 * i + 0];
-      top_label[5 * i + 2] = src.cols - top_label[5 * i + 2];
-      std::swap(top_label[5 * i + 0], top_label[5 * i + 2]);
-    }
+    top_label[5 * i + 2] = rois[i-1][FrcnnRoiDataLayer::X2] * im_scale; // x2
+    top_label[5 * i + 3] = rois[i-1][FrcnnRoiDataLayer::Y2] * im_scale; // y2
     top_label[5 * i + 4] = rois[i-1][FrcnnRoiDataLayer::LABEL];         // label
     
     // DEBUG
     CHECK(top_label[5 * i + 0] >= 0 );
     CHECK(top_label[5 * i + 1] >= 0 );
-    CHECK(top_label[5 * i + 2] <= top_label[1] ) << mirror << " row : " << src.rows << ",  col : " << src.cols << ", im_scale : " 
+    CHECK(top_label[5 * i + 2] <= top_label[1]) << mirror << " row : " << src.rows << ",  col : " << src.cols << ", im_scale : " 
             << im_scale << " | " << rois[i-1][FrcnnRoiDataLayer::X2] << " , " << top_label[5 * i + 2];
-    CHECK(top_label[5 * i + 3] <= top_label[0] ) << mirror << " row : " << src.rows << ",  col : " << src.cols << ", im_scale : " 
+    CHECK(top_label[5 * i + 3] <= top_label[0]) << mirror << " row : " << src.rows << ",  col : " << src.cols << ", im_scale : " 
             << im_scale << " | " << rois[i-1][FrcnnRoiDataLayer::Y2] << " , " << top_label[5 * i + 3];
     
+    // Clip to Bounds
+    top_label[5 * i + 2] = std::min(top_label[5 * i + 2], Dtype(src.cols));
+    top_label[5 * i + 3] = std::min(top_label[5 * i + 3], Dtype(src.rows));
   }
 
   trans_time += timer.MicroSeconds();
@@ -324,13 +339,6 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   CHECK(channels >= 1);
 
   batch_timer.Stop();
-  DLOG(ERROR) << "FrcnnRoiDataLayer load batch: " << image_database_[index] << " scale : " << top_label[2] << "[] GT_NUM : " << channels-1;
-  for (int i = 1; i < channels; i++) {
-    DLOG(ERROR) << "---------= " << top_label[5 * i + 0] << ", " << top_label[5 * i + 1] << ", " << top_label[5 * i + 2] << ", " << top_label[5 * i + 3];
-  }
-  DLOG(INFO) << "Image Information: " << "height " << top_label[0] << " width "
-             << top_label[1] << " scale " << top_label[2];
-  DLOG(INFO) << "Ground Truth Boxes: " << channels-1 << " boxes";
   DLOG(INFO) << "Prefetch batch: " << batch_timer.MilliSeconds() << " ms.";
   DLOG(INFO) << "     Read time: " << read_time / 1000 << " ms.";
   DLOG(INFO) << "Transform time: " << trans_time / 1000 << " ms.";
@@ -343,20 +351,15 @@ void FrcnnRoiDataLayer<Dtype>::Forward_cpu(
   // Reshape to loaded data.
   top[0]->ReshapeLike(batch->data_);
   // Copy the data
-  caffe_copy(batch->data_.count(), batch->data_.cpu_data(),
-             top[0]->mutable_cpu_data());
-  DLOG(INFO) << "Prefetch copied";
+  caffe_copy(batch->data_.count(), batch->data_.cpu_data(), top[0]->mutable_cpu_data());
   if (this->output_labels_) {
     caffe_copy(3, batch->label_.cpu_data(), top[1]->mutable_cpu_data());
     // Reshape to loaded labels.
-    vector<int> label_shape(batch->label_.shape());
-    label_shape[0] = label_shape[0] - 1;
-    top[2]->Reshape(label_shape);
+    top[2]->Reshape(batch->label_.num()-1, batch->label_.channels(), batch->label_.height(), batch->label_.width());
     // Copy the labels.
-    caffe_copy(batch->label_.count() - 5, batch->label_.cpu_data() + 5,
-               top[2]->mutable_cpu_data());
+    caffe_copy(batch->label_.count() - 5, batch->label_.cpu_data() + 5, top[2]->mutable_cpu_data());
+    DLOG(INFO) << "Forward_FRCNN_ROI_DATA : " << top[2]->num() << ", " << top[2]->channels() << ", " << top[2]->height() << ", " << top[2]->width();
   }
-  DLOG(INFO) << "Forward_FRCNN_ROI_DATA : " << top[2]->num() << ", " << top[2]->channels() << ", " << top[2]->height() << ", " << top[2]->width();
   this->prefetch_free_.push(batch);
 }
 

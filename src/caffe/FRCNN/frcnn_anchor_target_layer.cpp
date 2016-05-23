@@ -38,7 +38,6 @@ void FrcnnAnchorTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bott
 
   LOG(INFO) << "FrcnnAnchorTargetLayer : " << config_n_anchors_ << " anchors , " << feat_stride_ << " feat_stride , " << border_ << " allowed_border";
   LOG(INFO) << "FrcnnAnchorTargetLayer : FrcnnParam::rpn_negative_overlap : " << FrcnnParam::rpn_negative_overlap;
-  LOG(INFO) << "FrcnnAnchorTargetLayer : FrcnnParam::rpn_negative_overlap : " << FrcnnParam::rpn_negative_overlap;
   LOG(INFO) << "FrcnnAnchorTargetLayer : FrcnnParam::rpn_positive_overlap : " << FrcnnParam::rpn_positive_overlap;
   LOG(INFO) << "FrcnnAnchorTargetLayer : FrcnnParam::rpn_bbox_inside_weights : " << FrcnnParam::rpn_bbox_inside_weights[0] << ", " << FrcnnParam::rpn_bbox_inside_weights[1] << ", " << FrcnnParam::rpn_bbox_inside_weights[2] << ", " << FrcnnParam::rpn_bbox_inside_weights[3];
   LOG(INFO) << "FrcnnAnchorTargetLayer : " << this->layer_param_.name() << " SetUp";
@@ -46,6 +45,8 @@ void FrcnnAnchorTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bott
   //DEBUG SET VALUE
   _squared_sum =  _sum = Point4f<Dtype>(0, 0, 0, 0);
   _counts = 0;
+  _count = 0;
+  _fg_sum = _bg_sum = 0;
 
 }
 
@@ -150,10 +151,13 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   }
   
   // fg label: for each gt, anchor with highest overlap
+  int debug_for_highest_over = 0;
   for (int j = 0; j < gt_max_overlaps.size(); j ++) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if ( gt_max_overlaps[j] - Dtype(1e-7) <= ious[i][j] ) {
+      if ( gt_max_overlaps[j] - Dtype(1e-8) <= ious[i][j] 
+            &&  gt_max_overlaps[j] + Dtype(1e-8) >= ious[i][j]) {
         labels[i] = 1;
+        debug_for_highest_over ++;
       }
     }
   }
@@ -176,7 +180,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   DLOG(ERROR) << "label == 1  : " << std::count(labels.begin(), labels.end(), 1);
   DLOG(ERROR) << "label == 0  : " << std::count(labels.begin(), labels.end(), 0);
   DLOG(ERROR) << "label == -1 : " << std::count(labels.begin(), labels.end(),-1);
-  DLOG(ERROR) << "gt_argmax_overlaps: " << gt_argmax_overlaps.size();
+  DLOG(ERROR) << "debug_for_highest_over : " << debug_for_highest_over;
 
   // subsample positive labels if we have too many
   int num_fg = FrcnnParam::rpn_fg_fraction * FrcnnParam::rpn_batchsize;
@@ -274,17 +278,23 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
       bbox_outside_weights[i].Point[1] = positive_weights;
       bbox_outside_weights[i].Point[2] = positive_weights;
       bbox_outside_weights[i].Point[3] = positive_weights;
-    } else {
+    } else if (labels[i] == 0) {
       bbox_outside_weights[i].Point[0] = negative_weights;
       bbox_outside_weights[i].Point[1] = negative_weights;
       bbox_outside_weights[i].Point[2] = negative_weights;
       bbox_outside_weights[i].Point[3] = negative_weights;
+    } else {
+      CHECK_EQ(bbox_outside_weights[i].Point[0], 0);
+      CHECK_EQ(bbox_outside_weights[i].Point[1], 0);
+      CHECK_EQ(bbox_outside_weights[i].Point[2], 0);
+      CHECK_EQ(bbox_outside_weights[i].Point[3], 0);
     }
   }
 
-  pair<Point4f<Dtype>,Point4f<Dtype> > STDS_MEANS = Get_Stds_Means(bbox_targets, labels);
-  DLOG(ERROR) << "STDS  : " << STDS_MEANS.first[0] << ", " << STDS_MEANS.first[1] << ", " << STDS_MEANS.first[2] << ", " << STDS_MEANS.first[3];
-  DLOG(ERROR) << "MEANS : " << STDS_MEANS.second[0] << ", " << STDS_MEANS.second[1] << ", " << STDS_MEANS.second[2] << ", " << STDS_MEANS.second[3];
+  //pair<Point4f<Dtype>,Point4f<Dtype> > STDS_MEANS = Get_Stds_Means(bbox_targets, labels);
+  //DLOG(ERROR) << "Count : " << this->_counts << "  STDS  : " << STDS_MEANS.first[0] << ", " << STDS_MEANS.first[1] << ", " << STDS_MEANS.first[2] << ", " << STDS_MEANS.first[3];
+  //DLOG(ERROR) << "MEANS : " << STDS_MEANS.second[0] << ", " << STDS_MEANS.second[1] << ", " << STDS_MEANS.second[2] << ", " << STDS_MEANS.second[3];
+  //Info_Stds_Means_AvePos(bbox_targets, labels);
 
   DLOG(ERROR) << "========== copy to top";
   // labels
@@ -318,7 +328,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
       top_bbox_targets        [ top[1]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_targets[index][cor];
       top_bbox_inside_weights [ top[2]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_inside_weights[index][cor];
       top_bbox_outside_weights[ top[3]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_outside_weights[index][cor];
-    }    
+    }
   }
 }
 

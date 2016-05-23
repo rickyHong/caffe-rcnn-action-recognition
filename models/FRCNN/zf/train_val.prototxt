@@ -11,7 +11,7 @@ layer {
     phase: TRAIN
   }
   window_data_param {
-    source: "examples/FRCNN/dataset/voc2007_trainval.txt"
+    source: "examples/FRCNN/dataset/voc2007_trainval.train"
     config: "examples/FRCNN/config/default_config.json"
     config: "examples/FRCNN/config/voc_config.json"
     root_folder: "VOCdevkit/VOC2007/JPEGImages/"

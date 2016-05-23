@@ -66,8 +66,11 @@ class FrcnnAnchorTargetLayer : public Layer<Dtype> {
   Point4f<Dtype> _sum;
   Point4f<Dtype> _squared_sum;
   int _counts;
+  int _fg_sum;
+  int _bg_sum;
+  int _count;
 // For Debug
-  inline pair<Point4f<Dtype>,Point4f<Dtype> > Get_Stds_Means(const vector<Point4f<Dtype> > targets, const vector<int> labels){
+  inline void Info_Stds_Means_AvePos(const vector<Point4f<Dtype> > targets, const vector<int> labels){
     CHECK_EQ(targets.size(), labels.size());
     const int n = targets.size();
     for (int index = 0; index < n; index++) {
@@ -78,13 +81,20 @@ class FrcnnAnchorTargetLayer : public Layer<Dtype> {
           this->_squared_sum[j] = this->_squared_sum[j] + targets[index][j] * targets[index][j];
         }
       }
+      _fg_sum += labels[index] == 1;
+      _bg_sum += labels[index] == 0;
     }
     Point4f<Dtype> means, stds;
     for (int j = 0; j < 4; j++) if (this->_counts > 0 ) {
       means[j] = this->_sum[j] / this->_counts;
-      stds[j] = sqrt(this->_squared_sum[j] - means[j]*means[j]);
+      stds[j] = sqrt(this->_squared_sum[j] / this->_counts - means[j]*means[j]);
     }
-    return make_pair(stds, means);
+    LOG(INFO) << "Info_Stds_Means_AvePos : COUNT : " << this->_counts;
+    LOG(INFO) << "STDS   : " << stds[0] << ", " << stds[1] << ", " << stds[2] << ", " << stds[3];
+    LOG(INFO) << "MEANS  : " << means[0] << ", " << means[1] << ", " << means[2] << ", " << means[3];
+    this->_count++;
+    LOG(INFO) << "num_positive ave : " << float(_fg_sum) / _count;
+    LOG(INFO) << "num_negitive ave : " << float(_bg_sum) / _count;
   }
 };
 
