@@ -83,6 +83,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
     DLOG(ERROR) << "============= " << i << "  : " << gt_boxes[i][0] << ", " << gt_boxes[i][1] << ", " << gt_boxes[i][2] << ", " << gt_boxes[i][3];
   }
 
+
   // Generate anchors
   DLOG(ERROR) << "========== generate anchors";
   vector<int> inds_inside;
@@ -90,17 +91,19 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
 
   Dtype bounds[4] = {-border_, -border_, im_width + border_, im_height + border_};
 
-  for (int k = 0; k < config_n_anchors_; k++) {
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
-        float x1 = j * feat_stride_ + anchors_[k * 4 + 0];  // shift_x[i][j];
-        float y1 = i * feat_stride_ + anchors_[k * 4 + 1];  // shift_y[i][j];
-        float x2 = j * feat_stride_ + anchors_[k * 4 + 2];  // shift_x[i][j];
-        float y2 = i * feat_stride_ + anchors_[k * 4 + 3];  // shift_y[i][j];
+  for (int h = 0; h < height; h++) {
+    for (int w = 0; w < width; w++) {
+      for (int k = 0; k < config_n_anchors_; k++) {
+        float x1 = w * feat_stride_ + anchors_[k * 4 + 0];  // shift_x[i][j];
+        float y1 = h * feat_stride_ + anchors_[k * 4 + 1];  // shift_y[i][j];
+        float x2 = w * feat_stride_ + anchors_[k * 4 + 2];  // shift_x[i][j];
+        float y2 = h * feat_stride_ + anchors_[k * 4 + 3];  // shift_y[i][j];
         if (x1 >= bounds[0] && y1 >= bounds[1] && x2 < bounds[2] &&
             y2 < bounds[3]) {
-          inds_inside.push_back(k * height  * width + i * width + j);
+          //inds_inside.push_back(k * height  * width + i * width + j);
+          inds_inside.push_back((h * width + w) * config_n_anchors_ + k);
           anchors.push_back(Point4f<Dtype>(x1, y1, x2, y2));
+          //if ( inds_inside.size() == 4096||  inds_inside.size() == 4277) LOG(INFO ) << "******* (ahw) " << k << ", " << i << ", " << j << " ::: " << x1 << ", " << y1 << ", " << x2 << ", " << y2;
         }
       }
     }
@@ -121,7 +124,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
 
   vector<vector<Dtype> > ious = get_ious(anchors, gt_boxes);
 
-  for (size_t ia = 0; ia < anchors.size(); ia++) {
+  for (int ia = 0; ia < n_anchors; ia++) {
   for (size_t igt = 0; igt < gt_boxes.size(); igt++) {
     if (ious[ia][igt] > max_overlaps[ia]) {
       max_overlaps[ia] = ious[ia][igt];
@@ -154,8 +157,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   int debug_for_highest_over = 0;
   for (int j = 0; j < gt_max_overlaps.size(); j ++) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if ( gt_max_overlaps[j] - Dtype(1e-8) <= ious[i][j] 
-            &&  gt_max_overlaps[j] + Dtype(1e-8) >= ious[i][j]) {
+      if ( std::abs(gt_max_overlaps[j] - ious[i][j]) <= FrcnnParam::eps ) {
         labels[i] = 1;
         debug_for_highest_over ++;
       }
@@ -319,10 +321,11 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   CHECK_EQ(inds_inside.size(), bbox_targets.size());
   CHECK_EQ(inds_inside.size(), bbox_outside_weights.size());
   CHECK_EQ(bbox_inside_weights.size(), bbox_outside_weights.size());
+
   for (size_t index = 0; index < inds_inside.size(); index++) {
-    const int _anchor = inds_inside[index] / (height*width);
-    const int _height = (inds_inside[index] % (height*width) ) / width;
-    const int _width  = inds_inside[index] % width;
+    const int _anchor = inds_inside[index] % config_n_anchors_;
+    const int _height = (inds_inside[index] / config_n_anchors_) / width;
+    const int _width  = (inds_inside[index] / config_n_anchors_) % width;
     top_labels[ top[0]->offset(0,0,_anchor*height+_height,_width) ] = labels[index];
     for (int cor = 0; cor < 4; cor++) {
       top_bbox_targets        [ top[1]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_targets[index][cor];
@@ -330,6 +333,20 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
       top_bbox_outside_weights[ top[3]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_outside_weights[index][cor];
     }
   }
+  /*
+  for (int h = 0; h < height; h++) {
+      for(int w =0; w < width; w++) {
+          for(int a = 0; a < config_n_anchors_; a++) {
+              if ( top[0]->data_at(0,0,a*height+h,w) == 1 )  {
+                    LOG(INFO) << "top[0] : " << a << ", " << h << ", " << w << " | " << top[0]->data_at(0,0,a*height+h,w);
+                    for (int top_index = 1;top_index <=3; top_index++) {
+                        LOG(INFO) << "top[" << top_index << "] : " << top[top_index]->data_at(0,a*4+0,h,w) << ", " << top[top_index]->data_at(0,a*4+0,h,w) << ", " << top[top_index]->data_at(0,a*4+1,h,w) << ", " << top[top_index]->data_at(0,a*4+2,h,w) << ", " << top[top_index]->data_at(0,a*4+3,h,w);
+                    }
+              }
+          }
+      }
+  }
+*/
 }
 
 template <typename Dtype>
