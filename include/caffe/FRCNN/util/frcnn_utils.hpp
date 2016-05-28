@@ -42,6 +42,12 @@ public:
     Point[0] = x1; Point[1] = y1;
     Point[2] = x2; Point[3] = y2;
   }
+  Point4f(const float data[4]) {
+    for (int i=0;i<4;i++) Point[i] = data[i]; 
+  }
+  Point4f(const double data[4]) {
+    for (int i=0;i<4;i++) Point[i] = data[i]; 
+  }
   Point4f(const Point4f &other) { memcpy(Point, other.Point, sizeof(Point)); }
   Dtype& operator[](const unsigned int id) { return Point[id]; }
   const Dtype& operator[](const unsigned int id) const { return Point[id]; }
@@ -108,29 +114,22 @@ void draw_bbox(cv::Mat &frame, const std::vector<BBox<Dtype> > &bboxs);
 
 float get_scale_factor(int width, int height, int short_size, int max_long_size);
 
-template <typename Dtype>
-void get_max_idxs(const std::vector<Dtype>& data, int n_col, std::vector<Dtype>& min_vals,
-                  std::vector<int>& min_idxs, int axis);
-
-template <typename Dtype>
-std::vector<int> get_equal_idx(const std::vector<Dtype> data_vector, Dtype target, int start_idx = 0, int stride = 1);
-
 // config
 typedef std::map<std::string, std::string> str_map;
 
 str_map parse_json_config(const std::string file_path);
 
 std::string extract_string(std::string target_key,
-    str_map& target_map, str_map& default_map);
+     str_map& default_map);
 
-float extract_float(std::string target_key, str_map& target_map,
+float extract_float(std::string target_key, 
     str_map& default_map);
 
-int extract_int(std::string target_key, str_map& target_map,
+int extract_int(std::string target_key, 
     str_map& default_map);
 
 std::vector<float> extract_vector(std::string target_key,
-    str_map& target_map, str_map& default_map);
+     str_map& default_map);
 
 // file 
 std::vector<std::string> get_file_list (const std::string& path,

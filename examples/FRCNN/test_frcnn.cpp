@@ -14,8 +14,6 @@ DEFINE_string(weights, "",
     "Trained Model By Faster RCNN End-to-End Pipeline.");
 DEFINE_string(default_c, "", 
     "Default config file path.");
-DEFINE_string(override_c, "", 
-    "Override config file path.");
 DEFINE_string(image_list, "", 
     "Optional;Test images list."); 
 DEFINE_string(image_root, "", 
@@ -41,7 +39,6 @@ int main(int argc, char** argv){
       "  --model        file    protocol buffer text file\n"
       "  --weights      file    Trained Model\n"
       "  --default_c    file    Default Config File\n"
-      "  --override_c   file    Override Config File"
       "  --image_list   file    input image list\n"
       "  --image_root   file    input image dir\n"
       "  --max_per_image   file limit to max_per_image detections\n"
@@ -54,10 +51,20 @@ int main(int argc, char** argv){
   if( FLAGS_gpu.size() > 0 )
     gpu_id = boost::lexical_cast<int>(FLAGS_gpu);
 
+  if (gpu_id >= 0) {
+#ifndef CPU_ONLY
+    caffe::Caffe::SetDevice(gpu_id);
+    caffe::Caffe::set_mode(caffe::Caffe::GPU);
+#else
+    LOG(FATAL) << "CPU ONLY MODEL, BUT PROVIDE GPU ID";
+#endif
+  } else {
+    caffe::Caffe::set_mode(caffe::Caffe::CPU);
+  }
+
   std::string proto_file             = FLAGS_model.c_str();
   std::string model_file             = FLAGS_weights.c_str();
   std::string default_config_file    = FLAGS_default_c.c_str();
-  std::string override_config_file   = FLAGS_override_c.c_str();
 
   const std::string image_list = FLAGS_image_list.c_str();
   const std::string image_root = FLAGS_image_root.c_str();
@@ -65,10 +72,11 @@ int main(int argc, char** argv){
 
   const int max_per_image = FLAGS_max_per_image;
 
-  FRCNN_API::Detector detector(proto_file, model_file, default_config_file, override_config_file, gpu_id);   
+  FRCNN_API::Detector detector(proto_file, model_file, default_config_file);
 
   LOG(INFO) << "image list is  : " << image_list;
   LOG(INFO) << "output file is : " << out_file;
+  LOG(INFO) << "max_per_image  : " << max_per_image;
   std::ifstream infile(image_list.c_str());
   std::ofstream otfile(out_file.c_str());
   std::string hash;
@@ -109,13 +117,14 @@ int main(int argc, char** argv){
         filtered_res.push_back( results[obj] );
       }
     }
+    const int ori_res_size = results.size();
     results = filtered_res;
     
     otfile << results.size() << std::endl;
     for (size_t obj = 0; obj < results.size(); obj++) {
       otfile << results[obj].id << "  " << INT(results[obj][0]) << " " << INT(results[obj][1]) << " " << INT(results[obj][2]) << " " << INT(results[obj][3]) << "     " << FloatToString(results[obj].confidence) << std::endl;
     }
-    LOG(INFO) << "Handle " << id << " th image : " << image << ", with image_thresh : " << image_thresh << ", left " << results.size() << " boxes";
+    LOG(INFO) << "Handle " << id << " th image : " << image << ", with image_thresh : " << image_thresh << ", " << ori_res_size << " -> " << results.size() << " boxes";
   }
   infile.close();
   otfile.close();

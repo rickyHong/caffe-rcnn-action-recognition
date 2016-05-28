@@ -12,25 +12,6 @@ layer {
   }
   window_data_param {
     source: "examples/FRCNN/dataset/voc2007_trainval.train"
-    config: "examples/FRCNN/config/default_config.json"
-    config: "examples/FRCNN/config/voc_config.json"
-    root_folder: "VOCdevkit/VOC2007/JPEGImages/"
-    cache_images: true
-  }
-}
-
-layer {
-  name: "input-data"
-  type: "FrcnnRoiData"
-  top: "data"
-  top: "im_info"
-  top: "gt_boxes"
-  include {
-    phase: TEST
-  }
-  window_data_param {
-    source: "examples/FRCNN/dataset/voc2007_test.txt"
-    config: "examples/FRCNN/config/default_config.json"
     config: "examples/FRCNN/config/voc_config.json"
     root_folder: "VOCdevkit/VOC2007/JPEGImages/"
     cache_images: true
@@ -222,8 +203,8 @@ layer {
   convolution_param {
     num_output: 18   # 2(bg/fg) * 9(anchors)
     kernel_size: 1 pad: 0 stride: 1
-    weight_filler { type: "xavier" } #weight_filler { type: "gaussian" std: 0.01 }
-    bias_filler { type: "constant" value: 0.2 } #bias_filler { type: "constant" value: 0 }
+    weight_filler { type: "gaussian" std: 0.01 }
+    bias_filler { type: "constant" value: 0 }
   }
 }
 layer {
@@ -236,8 +217,8 @@ layer {
   convolution_param {
     num_output: 36   # 4 * 9(anchors)
     kernel_size: 1 pad: 0 stride: 1
-    weight_filler { type: "xavier" } #weight_filler { type: "gaussian" std: 0.01 }
-    bias_filler { type: "constant" value: 0.2 } #bias_filler { type: "constant" value: 0 }
+    weight_filler { type: "gaussian" std: 0.01 }
+    bias_filler { type: "constant" value: 0 }
   }
 }
 layer {
@@ -275,19 +256,6 @@ layer {
   loss_param {
     ignore_label: -1
     normalize: true
-  }
-}
-layer {
-  name: "rpn_accuracy"
-  type: "Accuracy"
-  bottom: "rpn_cls_score_reshape"
-  bottom: "rpn_labels"
-  top: "rpn_accuracy"
-  include {
-    phase: TEST
-  }
-  accuracy_param {
-    ignore_label: -1
   }
 }
 layer {
@@ -417,8 +385,8 @@ layer {
   param { lr_mult: 2.0 }
   inner_product_param {
     num_output: 21
-    weight_filler { type: "xavier" } #{ type: "gaussian" std: 0.01 }
-    bias_filler { type: "constant" value: 0.2 } #{ type: "constant" value: 0 }
+    weight_filler { type: "gaussian" std: 0.001 }
+    bias_filler { type: "constant" value: 0 }
   }
 }
 layer {
@@ -430,8 +398,8 @@ layer {
   param { lr_mult: 2.0 }
   inner_product_param {
     num_output: 84
-    weight_filler { type: "xavier" } #{ type: "gaussian" std: 0.001 }
-    bias_filler { type: "constant" value: 0.2 } # { type: "constant" value: 0 }
+    weight_filler { type: "gaussian" std: 0.001 }
+    bias_filler { type: "constant" value: 0 }
   }
 }
 layer {

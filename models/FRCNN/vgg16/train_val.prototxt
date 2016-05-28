@@ -12,25 +12,6 @@ layer {
   }
   window_data_param {
     source: "examples/FRCNN/dataset/voc2007_trainval.txt"
-    config: "examples/FRCNN/config/default_config.json"
-    config: "examples/FRCNN/config/voc_config.json"
-    root_folder: "VOCdevkit/VOC2007/JPEGImages/"
-    cache_images: true
-  }
-}
-
-layer {
-  name: "input-data"
-  type: "FrcnnRoiData"
-  top: "data"
-  top: "im_info"
-  top: "gt_boxes"
-  include {
-    phase: TEST
-  }
-  window_data_param {
-    source: "examples/FRCNN/dataset/voc2007_test.txt"
-    config: "examples/FRCNN/config/default_config.json"
     config: "examples/FRCNN/config/voc_config.json"
     root_folder: "VOCdevkit/VOC2007/JPEGImages/"
     cache_images: true

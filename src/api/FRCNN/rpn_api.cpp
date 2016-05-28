@@ -27,20 +27,10 @@ void Rpn_Det::preprocess(const vector<float> &data, const int blob_idx){
   std::memcpy(blob_data, &data[0], sizeof(float) * data.size());
 }
 
-void Rpn_Det::Set_Model(std::string &proto_file, std::string &model_file, std::string default_config, std::string override_config, int gpu_id){
-  if (gpu_id >= 0) {
-#ifndef CPU_ONLY
-    caffe::Caffe::SetDevice(gpu_id);
-    caffe::Caffe::set_mode(caffe::Caffe::GPU);
-#else
-    LOG(FATAL) << "CPU ONLY MODEL, BUT PROVIDE GPU ID";
-#endif
-  } else {
-    caffe::Caffe::set_mode(caffe::Caffe::CPU);
-  }
+void Rpn_Det::Set_Model(std::string &proto_file, std::string &model_file, std::string default_config){
   net_.reset(new Net<float>(proto_file, caffe::TEST));
   net_->CopyTrainedLayersFrom(model_file);
-  FrcnnParam::load_param(override_config, default_config); 
+  FrcnnParam::load_param(default_config); 
   mean_[0] = FrcnnParam::pixel_means[0];
   mean_[1] = FrcnnParam::pixel_means[1];
   mean_[2] = FrcnnParam::pixel_means[2];

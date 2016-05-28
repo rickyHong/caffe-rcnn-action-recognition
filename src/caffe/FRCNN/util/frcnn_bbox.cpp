@@ -69,64 +69,6 @@ float get_scale_factor(int width, int height, int short_size, int max_long_size)
   return scale_factor;
 }
 
-template <typename Dtype>
-void get_max_idx(const Dtype * const data, int n_col, Dtype& max_val, int& max_idx, int stride = 1) {
-  max_idx = 0;
-  max_val = data[0];
-  for (int i = 0; i < n_col; i++) {
-    if (data[i*stride] > max_val) {
-      max_val = data[i*stride];
-      max_idx = i;
-    }
-  }
-}
-
-template <typename Dtype>
-void get_max_idxs(const vector<Dtype>& data, int n_col, vector<Dtype>& max_vals, vector<int>& max_idxs, int axis) {
-  if (data.size() == 0) return;
-  if (n_col <= 0) {
-    n_col = data.size();
-  }
-  CHECK_EQ(data.size() % n_col, 0) << "wrong column numer";
-  max_vals.clear(); max_idxs.clear();
-  if (axis == 0) {
-    for (size_t i = 0; i * n_col < data.size(); i++) {
-      int max_idx;
-      Dtype max_val;
-      get_max_idx(&data[i * n_col], n_col, max_val, max_idx);
-      max_vals.push_back(max_val);
-      max_idxs.push_back(max_idx);
-    }
-  } else {
-    int n_row = data.size()/n_col;
-    for (int i = 0; i < n_col ; i++) {
-      int max_idx;
-      Dtype max_val;
-      get_max_idx(&data[i], n_row, max_val, max_idx, n_col);
-      max_vals.push_back(max_val);
-      max_idxs.push_back(max_idx);
-    }
-  }
-}
-template void get_max_idxs(const vector<float>& data, int n_col, vector<float>& max_vals, vector<int>& max_idxs, int axis);
-template void get_max_idxs(const vector<double>& data, int n_col, vector<double>& max_vals, vector<int>& max_idxs, int axis);
-
-template <typename Dtype>
-std::vector<int> get_equal_idx(const std::vector<Dtype> data_vector, Dtype target, int start_idx, int stride) {
-  std::vector<int> idx_vector;
-  const int vec_size = data_vector.size(); 
-  for (int i = 0; i * stride + start_idx < vec_size; i = i + 1) {
-    int idx = start_idx + i * stride;
-    if (data_vector[idx] == target) {
-      idx_vector.push_back(i);
-    }   
-  }
-  return idx_vector;
-}
-template std::vector<int> get_equal_idx(const std::vector<float> data_vector, float target, int start_idx = 0, int stride = 1);
-template std::vector<int> get_equal_idx(const std::vector<double> data_vector, double target, int start_idx = 0, int stride = 1);
-template std::vector<int> get_equal_idx(const std::vector<int> data_vector, int target, int start_idx = 0, int stride = 1);
-
 } // namespace frcnn
 
 } // namespace caffe

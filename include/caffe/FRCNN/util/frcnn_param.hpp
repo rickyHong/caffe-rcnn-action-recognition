@@ -87,8 +87,7 @@ public:
   static float test_score_thresh;
   static int n_classes;
   // ========================================
-  static void load_param(const std::string override_config_path,
-                         const std::string default_config_path);
+  static void load_param(const std::string default_config_path);
   static void print_param();
 };
 

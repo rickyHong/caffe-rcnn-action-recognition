@@ -1,7 +1,4 @@
-net: "models/FRCNN/zf/train_val.prototxt"
-
-test_iter: 100
-test_interval: 1000
+train_net: "models/FRCNN/zf/train_val.prototxt"
 
 base_lr: 0.001
 lr_policy: "step"
@@ -13,8 +10,6 @@ display: 20
 average_loss: 1
 weight_decay: 0.0005
 
-snapshot: 0
+snapshot: 10000
 snapshot_prefix: "./models/FRCNN/snapshot/zf_frcnn_end_to_end"
-iter_size: 2
-
-test_initialization: false
+iter_size: 1

@@ -70,7 +70,8 @@ class FrcnnAnchorTargetLayer : public Layer<Dtype> {
   int _bg_sum;
   int _count;
 // For Debug
-  inline void Info_Stds_Means_AvePos(const vector<Point4f<Dtype> > targets, const vector<int> labels){
+  inline void Info_Stds_Means_AvePos(const vector<Point4f<Dtype> > &targets, const vector<int> &labels){
+#ifdef DEBUG
     CHECK_EQ(targets.size(), labels.size());
     const int n = targets.size();
     for (int index = 0; index < n; index++) {
@@ -95,6 +96,7 @@ class FrcnnAnchorTargetLayer : public Layer<Dtype> {
     this->_count++;
     LOG(INFO) << "num_positive ave : " << float(_fg_sum) / _count;
     LOG(INFO) << "num_negitive ave : " << float(_bg_sum) / _count;
+#endif
   }
 };
 

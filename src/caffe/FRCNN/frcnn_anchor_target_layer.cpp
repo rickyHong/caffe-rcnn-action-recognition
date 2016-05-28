@@ -80,7 +80,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
         bottom[1]->data_at(i, 3, 0, 0)));
     CHECK(gt_boxes[i][0]>=0 && gt_boxes[i][1]>=0);
     CHECK(gt_boxes[i][2]<=im_width && gt_boxes[i][3]<=im_height);
-    DLOG(ERROR) << "============= " << i << "  : " << gt_boxes[i][0] << ", " << gt_boxes[i][1] << ", " << gt_boxes[i][2] << ", " << gt_boxes[i][3];
+    //DLOG(ERROR) << "============= " << i << "  : " << gt_boxes[i][0] << ", " << gt_boxes[i][1] << ", " << gt_boxes[i][2] << ", " << gt_boxes[i][3];
   }
 
 
@@ -100,10 +100,8 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
         float y2 = h * feat_stride_ + anchors_[k * 4 + 3];  // shift_y[i][j];
         if (x1 >= bounds[0] && y1 >= bounds[1] && x2 < bounds[2] &&
             y2 < bounds[3]) {
-          //inds_inside.push_back(k * height  * width + i * width + j);
           inds_inside.push_back((h * width + w) * config_n_anchors_ + k);
           anchors.push_back(Point4f<Dtype>(x1, y1, x2, y2));
-          //if ( inds_inside.size() == 4096||  inds_inside.size() == 4277) LOG(INFO ) << "******* (ahw) " << k << ", " << i << ", " << j << " ::: " << x1 << ", " << y1 << ", " << x2 << ", " << y2;
         }
       }
     }
@@ -125,25 +123,26 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
   vector<vector<Dtype> > ious = get_ious(anchors, gt_boxes);
 
   for (int ia = 0; ia < n_anchors; ia++) {
-  for (size_t igt = 0; igt < gt_boxes.size(); igt++) {
-    if (ious[ia][igt] > max_overlaps[ia]) {
-      max_overlaps[ia] = ious[ia][igt];
-      argmax_overlaps[ia] = igt;
+    for (size_t igt = 0; igt < gt_boxes.size(); igt++) {
+      if (ious[ia][igt] > max_overlaps[ia]) {
+        max_overlaps[ia] = ious[ia][igt];
+        argmax_overlaps[ia] = igt;
+      }
+      if (ious[ia][igt] > gt_max_overlaps[igt]) {
+        gt_max_overlaps[igt] = ious[ia][igt];
+        gt_argmax_overlaps[igt] = ia;
+      }
     }
-    if (ious[ia][igt] > gt_max_overlaps[igt]) {
-      gt_max_overlaps[igt] = ious[ia][igt];
-      gt_argmax_overlaps[igt] = ia;
-    }
-  }
   }
 
-//Debug
+/*
   for (size_t i = 0; i < gt_max_overlaps.size(); i ++) {
     if (gt_max_overlaps[i] < FrcnnParam::rpn_positive_overlap) {
       DLOG(ERROR) << gt_max_overlaps[i] << ":gt--" << gt_boxes[i].to_string()
           << "  anchor--" << anchors[gt_argmax_overlaps[i]].to_string();
     }
   }
+*/
 
   if (FrcnnParam::rpn_clobber_positives==false) {
     //assign bg labels first so that positive labels can clobber them
@@ -201,11 +200,12 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
     for (std::set<int>::iterator it = ind_set.begin(); it != ind_set.end(); it++) {
       labels[*it] = -1;
     }
+    
   }
 
   DLOG(ERROR) << "========== supress negative labels";
   // subsample negative labels if we have too many
-  int num_bg = FrcnnParam::rpn_batchsize - get_equal_idx(labels, 1).size();
+  int num_bg = FrcnnParam::rpn_batchsize - std::count(labels.begin(), labels.end(), 1);
   const int bg_inds_size = std::count(labels.begin(), labels.end(), 0);
   if (bg_inds_size > num_bg) {
     vector<int> bg_inds ;
@@ -228,21 +228,16 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
 
   DLOG(ERROR) << "========== transfer bbox";
   vector<Point4f<Dtype> > bbox_targets;
-  //vector<Point4f<Dtype> > max_overlap_gt_boxes;
   for (int i =0; i < argmax_overlaps.size(); i++) {
-    //max_overlap_gt_boxes.push_back(gt_boxes[argmax_overlaps[i]]);
     if (argmax_overlaps[i] < 0 )
       bbox_targets.push_back(Point4f<Dtype>());
     else 
       bbox_targets.push_back( bbox_transform(anchors[i], gt_boxes[argmax_overlaps[i]] ) );
   }
-  //bbox_targets = bbox_transform(anchors, max_overlap_gt_boxes);
 
   vector<Point4f<Dtype> > bbox_inside_weights(n_anchors, Point4f<Dtype>());
   for (int i = 0; i < n_anchors; i++) {
     if (labels[i] == 1) {
-      //memcpy(bbox_inside_weights[i].Point, &FrcnnParam::rpn_bbox_inside_weights[0],
-      //       4 * sizeof(float));
       bbox_inside_weights[i].Point[0] = FrcnnParam::rpn_bbox_inside_weights[0];
       bbox_inside_weights[i].Point[1] = FrcnnParam::rpn_bbox_inside_weights[1];
       bbox_inside_weights[i].Point[2] = FrcnnParam::rpn_bbox_inside_weights[2];
@@ -293,10 +288,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
     }
   }
 
-  //pair<Point4f<Dtype>,Point4f<Dtype> > STDS_MEANS = Get_Stds_Means(bbox_targets, labels);
-  //DLOG(ERROR) << "Count : " << this->_counts << "  STDS  : " << STDS_MEANS.first[0] << ", " << STDS_MEANS.first[1] << ", " << STDS_MEANS.first[2] << ", " << STDS_MEANS.first[3];
-  //DLOG(ERROR) << "MEANS : " << STDS_MEANS.second[0] << ", " << STDS_MEANS.second[1] << ", " << STDS_MEANS.second[2] << ", " << STDS_MEANS.second[3];
-  //Info_Stds_Means_AvePos(bbox_targets, labels);
+  Info_Stds_Means_AvePos(bbox_targets, labels);
 
   DLOG(ERROR) << "========== copy to top";
   // labels
@@ -333,20 +325,7 @@ void FrcnnAnchorTargetLayer<Dtype>::Forward_cpu(
       top_bbox_outside_weights[ top[3]->offset(0,_anchor*4+cor,_height,_width) ] = bbox_outside_weights[index][cor];
     }
   }
-  /*
-  for (int h = 0; h < height; h++) {
-      for(int w =0; w < width; w++) {
-          for(int a = 0; a < config_n_anchors_; a++) {
-              if ( top[0]->data_at(0,0,a*height+h,w) == 1 )  {
-                    LOG(INFO) << "top[0] : " << a << ", " << h << ", " << w << " | " << top[0]->data_at(0,0,a*height+h,w);
-                    for (int top_index = 1;top_index <=3; top_index++) {
-                        LOG(INFO) << "top[" << top_index << "] : " << top[top_index]->data_at(0,a*4+0,h,w) << ", " << top[top_index]->data_at(0,a*4+0,h,w) << ", " << top[top_index]->data_at(0,a*4+1,h,w) << ", " << top[top_index]->data_at(0,a*4+2,h,w) << ", " << top[top_index]->data_at(0,a*4+3,h,w);
-                    }
-              }
-          }
-      }
-  }
-*/
+  
 }
 
 template <typename Dtype>

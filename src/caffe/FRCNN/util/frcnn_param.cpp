@@ -19,7 +19,7 @@ float FrcnnParam::bg_thresh_lo;
 bool FrcnnParam::use_flipped;
 
 // Train bounding-box regressors
-bool FrcnnParam::bbox_reg;
+bool FrcnnParam::bbox_reg; // Unuse
 float FrcnnParam::bbox_thresh;
 std::string FrcnnParam::snapshot_infix;
 bool FrcnnParam::bbox_normalize_targets;
@@ -69,80 +69,77 @@ int FrcnnParam::rng_seed;
 float FrcnnParam::eps;
 
 // ======================================== 
-// Add By Config file, Using Two Config File , Default Config File include all parameters 
-// And Override Config File will include your special alterred params for your own task.
 int FrcnnParam::feat_stride;
 std::vector<float> FrcnnParam::anchors;
 float FrcnnParam::test_score_thresh;
 int FrcnnParam::n_classes;
 
-void FrcnnParam::load_param(const std::string override_config_path, const std::string default_config_path) {
+void FrcnnParam::load_param(const std::string default_config_path) {
   std::vector<float> v_tmp;
 
-  str_map target_map = parse_json_config(override_config_path);
   str_map default_map = parse_json_config(default_config_path);
 
-  FrcnnParam::scales = extract_vector("scales", target_map, default_map);
-  FrcnnParam::max_size = extract_float("max_size", target_map, default_map);
-  FrcnnParam::batch_size = extract_float("batch_size", target_map, default_map);
+  FrcnnParam::scales = extract_vector("scales", default_map);
+  FrcnnParam::max_size = extract_float("max_size", default_map);
+  FrcnnParam::batch_size = extract_float("batch_size", default_map);
 
-  FrcnnParam::fg_fraction = extract_float("fg_fraction", target_map, default_map);
-  FrcnnParam::fg_thresh = extract_float("fg_thresh", target_map, default_map);
-  FrcnnParam::bg_thresh_hi = extract_float("bg_thresh_hi", target_map, default_map);
-  FrcnnParam::bg_thresh_lo = extract_float("bg_thresh_lo", target_map, default_map);
+  FrcnnParam::fg_fraction = extract_float("fg_fraction", default_map);
+  FrcnnParam::fg_thresh = extract_float("fg_thresh", default_map);
+  FrcnnParam::bg_thresh_hi = extract_float("bg_thresh_hi", default_map);
+  FrcnnParam::bg_thresh_lo = extract_float("bg_thresh_lo", default_map);
   FrcnnParam::use_flipped =
-      static_cast<bool>(extract_int("use_flipped", target_map, default_map));
+      static_cast<bool>(extract_int("use_flipped", default_map));
 
   FrcnnParam::bbox_reg =
-      static_cast<bool>(extract_int("bbox_reg", target_map, default_map));
-  FrcnnParam::bbox_thresh = extract_float("bbox_thresh", target_map, default_map);
-  FrcnnParam::snapshot_infix = extract_string("snapshot_infix", target_map, default_map);
+      static_cast<bool>(extract_int("bbox_reg", default_map));
+  FrcnnParam::bbox_thresh = extract_float("bbox_thresh", default_map);
+  FrcnnParam::snapshot_infix = extract_string("snapshot_infix", default_map);
   FrcnnParam::bbox_normalize_targets =
-      static_cast<bool>(extract_int("bbox_normalize_targets", target_map, default_map));
-  v_tmp = extract_vector("bbox_inside_weights", target_map, default_map);
+      static_cast<bool>(extract_int("bbox_normalize_targets", default_map));
+  v_tmp = extract_vector("bbox_inside_weights", default_map);
   std::copy(v_tmp.begin(), v_tmp.end(), FrcnnParam::bbox_inside_weights);
-  v_tmp = extract_vector("bbox_normalize_means", target_map, default_map);
+  v_tmp = extract_vector("bbox_normalize_means", default_map);
   std::copy(v_tmp.begin(), v_tmp.end(), FrcnnParam::bbox_normalize_means);
-  v_tmp = extract_vector("bbox_normalize_stds", target_map, default_map);
+  v_tmp = extract_vector("bbox_normalize_stds", default_map);
   std::copy(v_tmp.begin(), v_tmp.end(), FrcnnParam::bbox_normalize_stds);
 
-  FrcnnParam::rpn_positive_overlap = extract_float("rpn_positive_overlap", target_map, default_map);
-  FrcnnParam::rpn_negative_overlap = extract_float("rpn_negative_overlap", target_map, default_map);
+  FrcnnParam::rpn_positive_overlap = extract_float("rpn_positive_overlap", default_map);
+  FrcnnParam::rpn_negative_overlap = extract_float("rpn_negative_overlap", default_map);
   FrcnnParam::rpn_clobber_positives =
-      static_cast<bool>(extract_int("rpn_clobber_positives", target_map, default_map));
-  FrcnnParam::rpn_fg_fraction = extract_float("rpn_fg_fraction", target_map, default_map);
-  FrcnnParam::rpn_batchsize = extract_float("rpn_batchsize", target_map, default_map);
-  FrcnnParam::rpn_nms_thresh = extract_float("rpn_nms_thresh", target_map, default_map);
-  FrcnnParam::rpn_pre_nms_top_n = extract_int("rpn_pre_nms_top_n", target_map, default_map);
-  FrcnnParam::rpn_post_nms_top_n = extract_int("rpn_post_nms_top_n", target_map, default_map);
-  FrcnnParam::rpn_min_size = extract_float("rpn_min_size", target_map, default_map);
-  v_tmp = extract_vector("rpn_bbox_inside_weights", target_map, default_map);
+      static_cast<bool>(extract_int("rpn_clobber_positives", default_map));
+  FrcnnParam::rpn_fg_fraction = extract_float("rpn_fg_fraction", default_map);
+  FrcnnParam::rpn_batchsize = extract_float("rpn_batchsize", default_map);
+  FrcnnParam::rpn_nms_thresh = extract_float("rpn_nms_thresh", default_map);
+  FrcnnParam::rpn_pre_nms_top_n = extract_int("rpn_pre_nms_top_n", default_map);
+  FrcnnParam::rpn_post_nms_top_n = extract_int("rpn_post_nms_top_n", default_map);
+  FrcnnParam::rpn_min_size = extract_float("rpn_min_size", default_map);
+  v_tmp = extract_vector("rpn_bbox_inside_weights", default_map);
   std::copy(v_tmp.begin(), v_tmp.end(), FrcnnParam::rpn_bbox_inside_weights);
-  FrcnnParam::rpn_positive_weight = extract_float("rpn_positive_weight", target_map, default_map);
-  FrcnnParam::rpn_allowed_border = extract_float("rpn_allowed_border", target_map, default_map);
+  FrcnnParam::rpn_positive_weight = extract_float("rpn_positive_weight", default_map);
+  FrcnnParam::rpn_allowed_border = extract_float("rpn_allowed_border", default_map);
 
   // ======================================== Test
-  FrcnnParam::test_scales = extract_vector("test_scales", target_map, default_map);
-  FrcnnParam::test_max_size = extract_float("test_max_size", target_map, default_map);
-  FrcnnParam::test_nms = extract_float("test_nms", target_map, default_map);
+  FrcnnParam::test_scales = extract_vector("test_scales", default_map);
+  FrcnnParam::test_max_size = extract_float("test_max_size", default_map);
+  FrcnnParam::test_nms = extract_float("test_nms", default_map);
 
-  FrcnnParam::test_bbox_reg = static_cast<bool>(extract_float("test_bbox_reg", target_map, default_map));
-  FrcnnParam::test_rpn_nms_thresh = extract_float("test_rpn_nms_thresh", target_map, default_map);
-  FrcnnParam::test_rpn_pre_nms_top_n = extract_int("test_rpn_pre_nms_top_n", target_map, default_map);
-  FrcnnParam::test_rpn_post_nms_top_n = extract_int("test_rpn_post_nms_top_n", target_map, default_map);
-  FrcnnParam::test_rpn_min_size = extract_float("test_rpn_min_size", target_map, default_map);
+  FrcnnParam::test_bbox_reg = static_cast<bool>(extract_float("test_bbox_reg", default_map));
+  FrcnnParam::test_rpn_nms_thresh = extract_float("test_rpn_nms_thresh", default_map);
+  FrcnnParam::test_rpn_pre_nms_top_n = extract_int("test_rpn_pre_nms_top_n", default_map);
+  FrcnnParam::test_rpn_post_nms_top_n = extract_int("test_rpn_post_nms_top_n", default_map);
+  FrcnnParam::test_rpn_min_size = extract_float("test_rpn_min_size", default_map);
 
   // ========================================
-  v_tmp = extract_vector("pixel_means", target_map, default_map);
+  v_tmp = extract_vector("pixel_means", default_map);
   std::copy(v_tmp.begin(), v_tmp.end(), FrcnnParam::pixel_means);
-  FrcnnParam::rng_seed = extract_int("rng_seed", target_map, default_map);
-  FrcnnParam::eps = extract_float("eps", target_map, default_map);
+  FrcnnParam::rng_seed = extract_int("rng_seed", default_map);
+  FrcnnParam::eps = extract_float("eps", default_map);
 
   // ========================================
-  FrcnnParam::feat_stride = extract_int("feat_stride", target_map, default_map);
-  FrcnnParam::anchors = extract_vector("anchors", target_map, default_map);
-  FrcnnParam::test_score_thresh = extract_float("test_score_thresh", target_map, default_map);
-  FrcnnParam::n_classes = extract_float("n_classes", target_map, default_map);
+  FrcnnParam::feat_stride = extract_int("feat_stride", default_map);
+  FrcnnParam::anchors = extract_vector("anchors", default_map);
+  FrcnnParam::test_score_thresh = extract_float("test_score_thresh", default_map);
+  FrcnnParam::n_classes = extract_float("n_classes", default_map);
 }
 
 void FrcnnParam::print_param(){

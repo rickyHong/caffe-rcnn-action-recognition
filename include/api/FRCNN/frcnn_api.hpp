@@ -24,10 +24,10 @@ using caffe::Frcnn::BBox;
 
 class Detector {
 public:
-  Detector(std::string &proto_file, std::string &model_file, std::string default_config, std::string override_config, int gpu_id){
-    Set_Model(proto_file, model_file, default_config, override_config, gpu_id);
+  Detector(std::string &proto_file, std::string &model_file, std::string default_config){
+    Set_Model(proto_file, model_file, default_config);
   }
-  void Set_Model(std::string &proto_file, std::string &model_file, std::string default_config, std::string override_config, int gpu_id);
+  void Set_Model(std::string &proto_file, std::string &model_file, std::string default_config);
   void predict(const cv::Mat &img_in, vector<BBox<float> > &results);
 private:
   void preprocess(const cv::Mat &img_in, const int blob_idx);

@@ -48,11 +48,8 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
   //   num_roi
   //   label x1 y1 x2 y2
   
-  const int Config_Size = this->layer_param_.window_data_param().config_size();
-  CHECK_EQ( Config_Size , 2 ) << "Need Two Config Files, First is Default Param, Second is Override Param";
-  std::string default_config_file = this->layer_param_.window_data_param().config( 0 );
-  std::string override_config_file = this->layer_param_.window_data_param().config( 1 );
-  FrcnnParam::load_param(override_config_file, default_config_file);
+  std::string default_config_file = this->layer_param_.window_data_param().config();
+  FrcnnParam::load_param(default_config_file);
   FrcnnParam::print_param();
   cache_images_ = this->layer_param_.window_data_param().cache_images();
 
@@ -65,8 +62,6 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
             << this->layer_param_.window_data_param().root_folder() ;
   LOG(INFO) << "  Default Config File: "
             << default_config_file ;
-  LOG(INFO) << "  Override Config File: "
-            << override_config_file; 
 
   const std::string root_folder =
       this->layer_param_.window_data_param().root_folder();
@@ -186,10 +181,16 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
 
 template <typename Dtype>
 void FrcnnRoiDataLayer<Dtype>::ShuffleImages() {
-  CHECK(prefetch_rng_);
-  caffe::rng_t* prefetch_rng =
-      static_cast<caffe::rng_t*>(prefetch_rng_->generator());
-  shuffle(lines_.begin(), lines_.end(), prefetch_rng);
+  lines_id_++;
+  if (lines_id_ >= lines_.size()) {
+    // We have reached the end. Restart from the first.
+    DLOG(INFO) << "Restarting data prefetching from start.";
+    lines_id_ = 0;
+    CHECK(prefetch_rng_);
+    caffe::rng_t* prefetch_rng =
+        static_cast<caffe::rng_t*>(prefetch_rng_->generator());
+    shuffle(lines_.begin(), lines_.end(), prefetch_rng);
+  }
 }
 
 template <typename Dtype>
@@ -219,18 +220,12 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
       << "image and roi size abnormal";
 
   // Select id for batch -> <0 if fliped
-  CHECK_LT(lines_id_, lines_.size()) << "select error line id";
+  ShuffleImages();
+  CHECK(lines_id_ < lines_.size() && lines_id_ >= 0) << "select error line id : " << lines_id_;
   int index = lines_[lines_id_];
   bool do_mirror = mirror && PrefetchRand() % 2 && this->phase_ == TRAIN;
   float max_short = scales[PrefetchRand() % scales.size()];
 
-  // label format:
-  // labels x1 y1 x2 y2
-  // special for frcnn , this first channel is -1 , width , height ,
-  // width_with_pad , height_with_pad
-  const int channels = roi_database_[index].size() + 1;
-  batch->label_.Reshape(channels, 5, 1, 1);
-  Dtype *top_label = batch->label_.mutable_cpu_data();
   read_time += timer.MicroSeconds();
 
   // Prepare Image and labels;
@@ -242,7 +237,7 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   } else {
     cv_img = cv::imread(image_database_[index], CV_LOAD_IMAGE_COLOR);
     if (!cv_img.data) {
-      LOG(ERROR) << "Could not open or find file " << image_database_[index];
+      LOG(FATAL) << "Could not open or find file " << image_database_[index];
       return;
     }
   }
@@ -284,24 +279,34 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
     }
   }
 
+  // label format:
+  // labels x1 y1 x2 y2
+  // special for frcnn , this first channel is -1 , width , height ,
+  // width_with_pad , height_with_pad
+  const int channels = roi_database_[index].size() + 1;
+  batch->label_.Reshape(channels, 5, 1, 1);
+  Dtype *top_label = batch->label_.mutable_cpu_data();
+
   top_label[0] = src.rows; // height
   top_label[1] = src.cols; // width
   top_label[2] = im_scale; // im_scale: used to filter min size
-  //top_label[3] = 0;
-  top_label[3] = index;  // For Debug....
+  top_label[3] = 0;
   top_label[4] = 0;
 
-  //CHECK(top_label[0] >= 100 && top_label[1] >= 100) << "!!!!!!!!!!! " << image_database_[index];
   vector<vector<float> > rois = roi_database_[index];
   if (do_mirror) {
     for (int i = 0; i < rois.size(); i++) {
+      CHECK(rois[i][FrcnnRoiDataLayer::X1] >= 0 ) << "rois[i][FrcnnRoiDataLayer::X1] : " << rois[i][FrcnnRoiDataLayer::X1];
+      CHECK(rois[i][FrcnnRoiDataLayer::X2] < cv_img.cols ) << "rois[i][FrcnnRoiDataLayer::X2] : " << rois[i][FrcnnRoiDataLayer::X2];
+      CHECK(rois[i][FrcnnRoiDataLayer::Y2] < cv_img.rows ) << "rois[i][FrcnnRoiDataLayer::Y2] : " << rois[i][FrcnnRoiDataLayer::Y2];
       float old_x1 = rois[i][FrcnnRoiDataLayer::X1];
       float old_x2 = rois[i][FrcnnRoiDataLayer::X2];
-      rois[i][FrcnnRoiDataLayer::X1] = cv_img.cols - old_x2 -1; 
-      rois[i][FrcnnRoiDataLayer::X2] = cv_img.cols - old_x1 -1; 
+      rois[i][FrcnnRoiDataLayer::X1] = cv_img.cols - old_x2 - 1; 
+      rois[i][FrcnnRoiDataLayer::X2] = cv_img.cols - old_x1 - 1; 
       CHECK(rois[i][0] >= 0); 
-      CHECK(rois[i][2] >= rois[i][0]);
-      CHECK(rois[i][3] >= rois[i][1]);
+      CHECK(rois[i][FrcnnRoiDataLayer::X2] >= rois[i][FrcnnRoiDataLayer::X1]) << image_database_[index] << " = " << roi_database_[index][i][0] << ", " << roi_database_[index][i][1] << ", " << roi_database_[index][i][2] << ", " << roi_database_[index][i][3] << ", " << roi_database_[index][i][4] << std::endl 
+            << "rois[i][0] : " << rois[i][0] << ", rois[i][2] : " << rois[i][2] << " | cv_img.cols : " << cv_img.cols;
+      CHECK(rois[i][FrcnnRoiDataLayer::Y2] >= rois[i][FrcnnRoiDataLayer::Y1]) << "rois[i][Y1] : " << rois[i][FrcnnRoiDataLayer::Y1] << ", rois[i][Y2] : " << rois[i][FrcnnRoiDataLayer::Y2] << " | cv_img.cols : " << cv_img.cols;
     }
   }
   CHECK_EQ(rois.size(), channels-1);
@@ -321,22 +326,9 @@ void FrcnnRoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
     CHECK(top_label[5 * i + 3] <= top_label[0]) << mirror << " row : " << src.rows << ",  col : " << src.cols << ", im_scale : " 
             << im_scale << " | " << rois[i-1][FrcnnRoiDataLayer::Y2] << " , " << top_label[5 * i + 3];
     
-    // Clip to Bounds
-    top_label[5 * i + 2] = std::min(top_label[5 * i + 2], Dtype(src.cols));
-    top_label[5 * i + 3] = std::min(top_label[5 * i + 3], Dtype(src.rows));
   }
 
   trans_time += timer.MicroSeconds();
-
-  lines_id_++;
-  if (lines_id_ >= lines_.size()) {
-    // We have reached the end. Restart from the first.
-    DLOG(INFO) << "Restarting data prefetching from start.";
-    lines_id_ = 0;
-    ShuffleImages();
-  }
-
-  CHECK(channels >= 1);
 
   batch_timer.Stop();
   DLOG(INFO) << "Prefetch batch: " << batch_timer.MilliSeconds() << " ms.";
@@ -358,7 +350,6 @@ void FrcnnRoiDataLayer<Dtype>::Forward_cpu(
     top[2]->Reshape(batch->label_.num()-1, batch->label_.channels(), batch->label_.height(), batch->label_.width());
     // Copy the labels.
     caffe_copy(batch->label_.count() - 5, batch->label_.cpu_data() + 5, top[2]->mutable_cpu_data());
-    DLOG(INFO) << "Forward_FRCNN_ROI_DATA : " << top[2]->num() << ", " << top[2]->channels() << ", " << top[2]->height() << ", " << top[2]->width();
   }
   this->prefetch_free_.push(batch);
 }

@@ -39,32 +39,32 @@ str_map parse_json_config(const std::string file_path) {
   return json_map;
 }
 
-std::string extract_string(std::string target_key, str_map& target_map,
+std::string extract_string(std::string target_key, 
     str_map& default_map) {
   std::string target_str;
-  if (target_map.count(target_key) > 0) {
-    target_str = target_map[target_key];
-  } else {
+  if (default_map.count(target_key) > 0) {
     target_str = default_map[target_key];
+  } else {
+    LOG(FATAL) << "Can not find target_key : " << target_key;
   }
   return target_str;
 }
 
-float extract_float(std::string target_key, str_map& target_map,
+float extract_float(std::string target_key, 
     str_map& default_map) {
-  std::string target_str = extract_string(target_key, target_map, default_map);
+  std::string target_str = extract_string(target_key, default_map);
   return atof(target_str.c_str());
 }
 
-int extract_int(std::string target_key, str_map& target_map,
+int extract_int(std::string target_key, 
     str_map& default_map) {
-  std::string target_str = extract_string(target_key, target_map, default_map);
+  std::string target_str = extract_string(target_key, default_map);
   return atoi(target_str.c_str());
 }
 
 std::vector<float> extract_vector(std::string target_key,
-    str_map& target_map, str_map& default_map) {
-  std::string target_str = extract_string(target_key, target_map, default_map);
+     str_map& default_map) {
+  std::string target_str = extract_string(target_key, default_map);
   std::vector<float> results;
   std::vector<std::string> elems = split(target_str, ',');
 

@@ -6,11 +6,16 @@
 #define CAFFE_FRCNN_PROPOSAL_TARGET_LAYER_HPP_
 
 #include <vector>
+#include <boost/lexical_cast.hpp>
 
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
+#include "caffe/util/rng.hpp"
+#include "caffe/FRCNN/util/frcnn_utils.hpp"
+#include "caffe/FRCNN/util/frcnn_param.hpp"
+#include "caffe/FRCNN/util/frcnn_helper.hpp"
 
 namespace caffe {
 
@@ -54,9 +59,17 @@ class FrcnnProposalTargetLayer : public Layer<Dtype> {
       const vector<Blob<Dtype>*>& top);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  vector<float> anchors_;
-  int config_n_anchors_;
+
+  // For FRCNN
+  void _sample_rois(const vector<Point4f<Dtype> > &all_rois, const vector<Point4f<Dtype> > &gt_boxes,
+        const vector<int> &gt_label, const int fg_rois_per_image, const int rois_per_image, vector<int> &labels,
+        vector<Point4f<Dtype> > &rois, vector<vector<Point4f<Dtype> > > &bbox_targets, vector<vector<Point4f<Dtype> > > &bbox_inside_weights);
   int config_n_classes_;
+  shared_ptr<Caffe::RNG> rng_;
+  int _count_;
+  int _fg_num_;
+  int _bg_num_;
+ 
 };
 
 }  // namespace frcnn

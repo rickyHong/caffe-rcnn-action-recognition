@@ -1232,7 +1232,7 @@ message WindowDataParameter {
   // append root_folder to locate images
   optional string root_folder = 13 [default = ""];
   // Xuanyi Add For FRCNN Data Layer
-  repeated string config = 14;
+  optional string config = 14;
 }
 
 message SPPParameter {

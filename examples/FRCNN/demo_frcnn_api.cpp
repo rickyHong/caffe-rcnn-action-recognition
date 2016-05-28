@@ -14,8 +14,6 @@ DEFINE_string(weights, "",
     "Trained Model By Faster RCNN End-to-End Pipeline.");
 DEFINE_string(default_c, "", 
     "Default config file path.");
-DEFINE_string(override_c, "", 
-    "Override config file path.");
 DEFINE_string(image_dir, "",
     "Optional;Test images Dir."); 
 DEFINE_string(out_dir, "",
@@ -34,7 +32,6 @@ int main(int argc, char** argv){
       "  --model        file    protocol buffer text file\n"
       "  --weights      file    Trained Model\n"
       "  --default_c    file    Default Config File\n"
-      "  --override_c   file    Override Config File"
       "  --image_dir    file    input image dir \n"
       "  --out_dir      file    output image dir ");
   // Run tool or show usage.
@@ -43,16 +40,25 @@ int main(int argc, char** argv){
   int gpu_id = -1;
   if( FLAGS_gpu.size() > 0 )
     gpu_id = boost::lexical_cast<int>(FLAGS_gpu);
+  if (gpu_id >= 0) {
+#ifndef CPU_ONLY
+    caffe::Caffe::SetDevice(gpu_id);
+    caffe::Caffe::set_mode(caffe::Caffe::GPU);
+#else
+    LOG(FATAL) << "CPU ONLY MODEL, BUT PROVIDE GPU ID";
+#endif
+  } else {
+    caffe::Caffe::set_mode(caffe::Caffe::CPU);
+  }
 
   std::string proto_file             = FLAGS_model.c_str();
   std::string model_file             = FLAGS_weights.c_str();
   std::string default_config_file    = FLAGS_default_c.c_str();
-  std::string override_config_file   = FLAGS_override_c.c_str();
 
   std::string image_dir = FLAGS_image_dir.c_str();
   std::string out_dir = FLAGS_out_dir.c_str();
   std::vector<std::string> images = caffe::Frcnn::get_file_list(image_dir, ".jpg");
-  FRCNN_API::Detector detector(proto_file, model_file, default_config_file, override_config_file, gpu_id); 
+  FRCNN_API::Detector detector(proto_file, model_file, default_config_file); 
   
   std::vector<caffe::Frcnn::BBox<float> > results;
   caffe::Timer time_;

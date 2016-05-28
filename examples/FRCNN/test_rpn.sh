@@ -13,9 +13,8 @@ BUILD=build/examples/FRCNN/test_rpn.bin
 
 time $BUILD --gpu $gpu \
        --model models/FRCNN/zf_rpn/test.prototxt \
-       --weights models/FRCNN/snapshot/zf_rpn_iter_80000.caffemodel   \
-       --default_c examples/FRCNN/config/default_config.json \
-       --override_c examples/FRCNN/config/voc_config.json \
+       --weights models/FRCNN/snapshot/zf_rpn_iter_70000.caffemodel   \
+       --default_c examples/FRCNN/config/voc_config.json \
        --image_root VOCdevkit/VOC2007/JPEGImages/ \
        --image_list examples/FRCNN/dataset/voc2007_test.txt \
        --out_file examples/FRCNN/results/voc2007_test.rpn
