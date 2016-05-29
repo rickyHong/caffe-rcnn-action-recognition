@@ -19,6 +19,26 @@ using std::vector;
 template <typename Dtype>
 void FrcnnProposalLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
   const vector<Blob<Dtype> *> &top) {
+
+  CHECK_GT(FrcnnParam::test_rpn_pre_nms_top_n, 0);
+  CHECK_GT(FrcnnParam::rpn_pre_nms_top_n, 0);
+  CHECK_GT(FrcnnParam::test_rpn_post_nms_top_n, 0);
+  CHECK_GT(FrcnnParam::rpn_post_nms_top_n, 0);
+#ifndef CPU_ONLY
+  CUDA_CHECK(cudaMalloc(&anchors_, sizeof(float) * FrcnnParam::anchors.size()));
+  CUDA_CHECK(cudaMemcpy(anchors_, &(FrcnnParam::anchors[0]),
+                        sizeof(float) * FrcnnParam::anchors.size(), cudaMemcpyHostToDevice));
+
+  const int rpn_pre_nms_top_n = 
+    this->phase_ == TRAIN ? FrcnnParam::rpn_pre_nms_top_n : FrcnnParam::test_rpn_pre_nms_top_n;
+  CUDA_CHECK(cudaMalloc(&transform_bbox_, sizeof(float) * rpn_pre_nms_top_n * 4));
+  CUDA_CHECK(cudaMalloc(&selected_flags_, sizeof(int) * rpn_pre_nms_top_n));
+
+  const int rpn_post_nms_top_n = 
+    this->phase_ == TRAIN ? FrcnnParam::rpn_post_nms_top_n : FrcnnParam::test_rpn_post_nms_top_n;
+  CUDA_CHECK(cudaMalloc(&gpu_keep_indices_, sizeof(int) * rpn_post_nms_top_n));
+
+#endif
   top[0]->Reshape(1, 5, 1, 1);
   if (top.size() > 1) {
     top[1]->Reshape(1, 1, 1, 1);
@@ -58,8 +78,6 @@ void FrcnnProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
     rpn_nms_thresh = FrcnnParam::test_rpn_nms_thresh;
     rpn_min_size = FrcnnParam::test_rpn_min_size;
   }
-  if (rpn_pre_nms_top_n < 0 ) rpn_pre_nms_top_n = 1e8;
-  if (rpn_post_nms_top_n < 0 ) rpn_post_nms_top_n = 1e8;
   const int config_n_anchors = FrcnnParam::anchors.size() / 4;
 
   std::vector<Point4f<Dtype> > anchors;

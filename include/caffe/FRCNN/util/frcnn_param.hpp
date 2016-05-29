@@ -80,6 +80,7 @@ public:
   static float pixel_means[3]; // BGR
   static int rng_seed;
   static float eps;
+  static float inf;
 
   // ========================================
   static int feat_stride;

@@ -12,4 +12,4 @@ weight_decay: 0.0005
 
 snapshot: 10000
 snapshot_prefix: "./models/FRCNN/snapshot/zf_rpn"
-iter_size: 1
+iter_size: 2

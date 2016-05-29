@@ -6,21 +6,13 @@
 // ------------------------------------------------------------------
 
 #include "caffe/FRCNN/util/frcnn_gpu_nms.hpp"
+#include "caffe/common.hpp"
 #include <vector>
 #include <iostream>
 
 namespace caffe {
 
 namespace Frcnn {
-
-#define CUDA_CHECK(condition) \
-  /* Code block avoids redefinition of cudaError_t error */ \
-  do { \
-    cudaError_t error = condition; \
-    if (error != cudaSuccess) { \
-      std::cout << cudaGetErrorString(error) << std::endl; \
-    } \
-  } while (0)
 
 #define DIVUP(m,n) ((m) / (n) + ((m) % (n) > 0))
 int const threadsPerBlock = sizeof(unsigned long long) * 8;
@@ -47,24 +39,24 @@ __global__ void nms_kernel(const int n_boxes, const float nms_overlap_thresh,
   const int col_size =
         min(n_boxes - col_start * threadsPerBlock, threadsPerBlock);
 
-  __shared__ float block_boxes[threadsPerBlock * 5];
+  __shared__ float block_boxes[threadsPerBlock * 4];
   if (threadIdx.x < col_size) {
-    block_boxes[threadIdx.x * 5 + 0] =
-        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 5 + 0];
-    block_boxes[threadIdx.x * 5 + 1] =
-        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 5 + 1];
-    block_boxes[threadIdx.x * 5 + 2] =
-        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 5 + 2];
-    block_boxes[threadIdx.x * 5 + 3] =
-        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 5 + 3];
-    block_boxes[threadIdx.x * 5 + 4] =
-        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 5 + 4];
+    block_boxes[threadIdx.x * 4 + 0] =
+        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 4 + 0];
+    block_boxes[threadIdx.x * 4 + 1] =
+        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 4 + 1];
+    block_boxes[threadIdx.x * 4 + 2] =
+        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 4 + 2];
+    block_boxes[threadIdx.x * 4 + 3] =
+        dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 4 + 3];
+    //block_boxes[threadIdx.x * 5 + 4] =
+    //  dev_boxes[(threadsPerBlock * col_start + threadIdx.x) * 5 + 4];
   }
   __syncthreads();
 
   if (threadIdx.x < row_size) {
     const int cur_box_idx = threadsPerBlock * row_start + threadIdx.x;
-    const float *cur_box = dev_boxes + cur_box_idx * 5;
+    const float *cur_box = dev_boxes + cur_box_idx * 4;
     int i = 0;
     unsigned long long t = 0;
     int start = 0;
@@ -72,7 +64,7 @@ __global__ void nms_kernel(const int n_boxes, const float nms_overlap_thresh,
       start = threadIdx.x + 1;
     }
     for (i = start; i < col_size; i++) {
-      if (devIoU(cur_box, block_boxes + i * 5) > nms_overlap_thresh) {
+      if (devIoU(cur_box, block_boxes + i * 4) > nms_overlap_thresh) {
         t |= 1ULL << i;
       }
     }
@@ -82,6 +74,7 @@ __global__ void nms_kernel(const int n_boxes, const float nms_overlap_thresh,
 }
 
 void _set_device(int device_id) {
+  if (device_id<=0) return;
   int current_device;
   CUDA_CHECK(cudaGetDevice(&current_device));
   if (current_device == device_id) {
@@ -92,23 +85,21 @@ void _set_device(int device_id) {
   CUDA_CHECK(cudaSetDevice(device_id));
 }
 
-void _nms(int* keep_out, int* num_out, const float* boxes_host, int boxes_num,
+void gpu_nms(int* keep_out, int* num_out, const float* boxes_dev, int boxes_num,
           int boxes_dim, float nms_overlap_thresh, int device_id) {
-  if (device_id > 0) {
-    _set_device(device_id);
-  }
+  _set_device(device_id);
 
-  float* boxes_dev = NULL;
+  // float* boxes_dev = NULL;
   unsigned long long* mask_dev = NULL;
 
   const int col_blocks = DIVUP(boxes_num, threadsPerBlock);
 
-  CUDA_CHECK(cudaMalloc(&boxes_dev,
-                        boxes_num * boxes_dim * sizeof(float)));
-  CUDA_CHECK(cudaMemcpy(boxes_dev,
-                        boxes_host,
-                        boxes_num * boxes_dim * sizeof(float),
-                        cudaMemcpyHostToDevice));
+  // CUDA_CHECK(cudaMalloc(&boxes_dev,
+  //                       boxes_num * boxes_dim * sizeof(float)));
+  // CUDA_CHECK(cudaMemcpy(boxes_dev,
+  //                       boxes_host,
+  //                       boxes_num * boxes_dim * sizeof(float),
+  //                       cudaMemcpyHostToDevice));
 
   CUDA_CHECK(cudaMalloc(&mask_dev,
                         boxes_num * col_blocks * sizeof(unsigned long long)));
@@ -134,7 +125,6 @@ void _nms(int* keep_out, int* num_out, const float* boxes_host, int boxes_num,
   for (int i = 0; i < boxes_num; i++) {
     int nblock = i / threadsPerBlock;
     int inblock = i % threadsPerBlock;
-
     if (!(remv[nblock] & (1ULL << inblock))) {
       keep_out[num_to_keep++] = i;
       unsigned long long *p = &mask_host[0] + i * col_blocks;
@@ -145,7 +135,7 @@ void _nms(int* keep_out, int* num_out, const float* boxes_host, int boxes_num,
   }
   *num_out = num_to_keep;
 
-  CUDA_CHECK(cudaFree(boxes_dev));
+  // CUDA_CHECK(cudaFree(boxes_dev));
   CUDA_CHECK(cudaFree(mask_dev));
 }
 

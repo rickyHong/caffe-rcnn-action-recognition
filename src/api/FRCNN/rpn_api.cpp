@@ -28,9 +28,9 @@ void Rpn_Det::preprocess(const vector<float> &data, const int blob_idx){
 }
 
 void Rpn_Det::Set_Model(std::string &proto_file, std::string &model_file, std::string default_config){
+  FrcnnParam::load_param(default_config); 
   net_.reset(new Net<float>(proto_file, caffe::TEST));
   net_->CopyTrainedLayersFrom(model_file);
-  FrcnnParam::load_param(default_config); 
   mean_[0] = FrcnnParam::pixel_means[0];
   mean_[1] = FrcnnParam::pixel_means[1];
   mean_[2] = FrcnnParam::pixel_means[2];

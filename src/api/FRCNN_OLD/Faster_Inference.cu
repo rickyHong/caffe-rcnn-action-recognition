@@ -1,9 +1,5 @@
 #include "api/FRCNN_OLD/Faster_Inference.hpp"
-#include <cub/block/block_load.cuh>
-#include <cub/block/block_store.cuh>
-#include <cub/block/block_radix_sort.cuh>
-#include <cub/util_allocator.cuh>
-#include <cub/device/device_radix_sort.cuh>
+#include <cub/cub.cuh>
 
 #define DIVUP(m,n)      ((m)/(n)+((m)%(n)>0))
 const int threadsPerBlock = (sizeof(unsigned long long) * 8);

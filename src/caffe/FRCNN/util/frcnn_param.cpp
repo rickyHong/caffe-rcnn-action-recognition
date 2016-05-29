@@ -67,6 +67,7 @@ float FrcnnParam::test_rpn_min_size;
 float FrcnnParam::pixel_means[3]; // BGR
 int FrcnnParam::rng_seed;
 float FrcnnParam::eps;
+float FrcnnParam::inf;
 
 // ======================================== 
 int FrcnnParam::feat_stride;
@@ -134,6 +135,7 @@ void FrcnnParam::load_param(const std::string default_config_path) {
   std::copy(v_tmp.begin(), v_tmp.end(), FrcnnParam::pixel_means);
   FrcnnParam::rng_seed = extract_int("rng_seed", default_map);
   FrcnnParam::eps = extract_float("eps", default_map);
+  FrcnnParam::inf = extract_float("inf", default_map);
 
   // ========================================
   FrcnnParam::feat_stride = extract_int("feat_stride", default_map);
@@ -187,6 +189,7 @@ void FrcnnParam::print_param(){
   LOG(INFO) << "pixel_means[BGR]     : " << FrcnnParam::pixel_means[0] <<  " , " << FrcnnParam::pixel_means[1] << " , " << FrcnnParam::pixel_means[2];
   LOG(INFO) << "rng_seed             : " << FrcnnParam::rng_seed;
   LOG(INFO) << "eps                  : " << FrcnnParam::eps; 
+  LOG(INFO) << "inf                  : " << FrcnnParam::inf; 
   LOG(INFO) << "feat_stride          : " << FrcnnParam::feat_stride;
   LOG(INFO) << "anchors_size         : " << FrcnnParam::anchors.size();
   LOG(INFO) << "test_score_thresh    : " << FrcnnParam::test_score_thresh;
