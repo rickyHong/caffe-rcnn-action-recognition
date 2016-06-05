@@ -12,12 +12,11 @@ CAFFE=build/tools/caffe
 
 time GLOG_log_dir=examples/FRCNN/log $CAFFE train   \
     --gpu $gpu \
-    --solver models/FRCNN/zf/solver.prototxt \
-    --weights models/FRCNN/ZF.v2.caffemodel 
+    --solver models/FRCNN/res101/solver.proto \
+    --weights models/FRCNN/Res101.v2.caffemodel
 
 time python examples/FRCNN/convert_model.py \
-    --model models/FRCNN/zf/test.prototxt \
-    --weights models/FRCNN/snapshot/zf_frcnn_end_to_end_iter_70000.caffemodel \
+    --model models/FRCNN/res101/test.proto \
+    --weights models/FRCNN/snapshot/res101_faster_rcnn_iter_70000.caffemodel \
     --config examples/FRCNN/config/voc_config.json \
-    --net_out models/FRCNN/zf_faster_rcnn_final.caffemodel
-
+    --net_out models/FRCNN/res101_faster_rcnn_final.caffemodel

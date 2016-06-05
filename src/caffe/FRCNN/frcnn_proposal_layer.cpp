@@ -20,10 +20,6 @@ template <typename Dtype>
 void FrcnnProposalLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
   const vector<Blob<Dtype> *> &top) {
 
-  CHECK_GT(FrcnnParam::test_rpn_pre_nms_top_n, 0);
-  CHECK_GT(FrcnnParam::rpn_pre_nms_top_n, 0);
-  CHECK_GT(FrcnnParam::test_rpn_post_nms_top_n, 0);
-  CHECK_GT(FrcnnParam::rpn_post_nms_top_n, 0);
 #ifndef CPU_ONLY
   CUDA_CHECK(cudaMalloc(&anchors_, sizeof(float) * FrcnnParam::anchors.size()));
   CUDA_CHECK(cudaMemcpy(anchors_, &(FrcnnParam::anchors[0]),
@@ -79,6 +75,9 @@ void FrcnnProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
     rpn_min_size = FrcnnParam::test_rpn_min_size;
   }
   const int config_n_anchors = FrcnnParam::anchors.size() / 4;
+  LOG_IF(ERROR, rpn_pre_nms_top_n <= 0 ) << "rpn_pre_nms_top_n : " << rpn_pre_nms_top_n;
+  LOG_IF(ERROR, rpn_post_nms_top_n <= 0 ) << "rpn_post_nms_top_n : " << rpn_post_nms_top_n;
+  if (rpn_pre_nms_top_n <= 0 || rpn_post_nms_top_n <= 0 ) return;
 
   std::vector<Point4f<Dtype> > anchors;
   typedef pair<Dtype, int> sort_pair;

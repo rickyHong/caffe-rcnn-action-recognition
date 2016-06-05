@@ -9,6 +9,8 @@ else
     gpu=$1
 fi
 
+pid=$$
+
 BUILD=build/examples/FRCNN/test_rpn.bin
 
 time $BUILD --gpu $gpu \
@@ -17,10 +19,10 @@ time $BUILD --gpu $gpu \
        --default_c examples/FRCNN/config/voc_config.json \
        --image_root VOCdevkit/VOC2007/JPEGImages/ \
        --image_list examples/FRCNN/dataset/voc2007_test.txt \
-       --out_file examples/FRCNN/results/voc2007_test.rpn
+       --out_file examples/FRCNN/results/voc2007_test_${pid}.rpn
 
 CAL_RECALL=examples/FRCNN/calculate_recall.py
 
 time python $CAL_RECALL --gt examples/FRCNN/dataset/voc2007_test.txt \
-            --answer examples/FRCNN/results/voc2007_test.rpn \
+            --answer examples/FRCNN/results/voc2007_test_${pid}.rpn \
             --overlap 0.5

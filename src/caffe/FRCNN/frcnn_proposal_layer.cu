@@ -144,6 +144,10 @@ void FrcnnProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype> *> &bottom,
     rpn_nms_thresh = FrcnnParam::test_rpn_nms_thresh;
     rpn_min_size = FrcnnParam::test_rpn_min_size;
   }
+  LOG_IF(ERROR, rpn_pre_nms_top_n <= 0 ) << "rpn_pre_nms_top_n : " << rpn_pre_nms_top_n;
+  LOG_IF(ERROR, rpn_post_nms_top_n <= 0 ) << "rpn_post_nms_top_n : " << rpn_post_nms_top_n;
+  if (rpn_pre_nms_top_n <= 0 || rpn_post_nms_top_n <= 0 ) return;
+
   const int config_n_anchors = FrcnnParam::anchors.size() / 4;
   const int total_anchor_num = config_n_anchors * height * width;
 

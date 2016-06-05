@@ -134,7 +134,6 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
   } while (infile >> hashtag >> image_index);
 
   LOG(INFO) << "number of images: " << image_index + 1;
-  lines_id_ = 0;
 
   for (map<int, int>::iterator it = label_hist.begin(); it != label_hist.end(); ++it) {
     LOG(INFO) << "class " << it->first << " has " << label_hist[it->first] << " samples";
@@ -176,7 +175,11 @@ void FrcnnRoiDataLayer<Dtype>::DataLayerSetUp(
   LOG(INFO) << "Shuffling data";
   const unsigned int prefetch_rng_seed = FrcnnParam::rng_seed;
   prefetch_rng_.reset(new Caffe::RNG(prefetch_rng_seed));
-  ShuffleImages();
+  lines_id_ = 0; // First Shuffle
+  CHECK(prefetch_rng_);
+  caffe::rng_t* prefetch_rng =
+      static_cast<caffe::rng_t*>(prefetch_rng_->generator());
+  shuffle(lines_.begin(), lines_.end(), prefetch_rng);
 } 
 
 template <typename Dtype>

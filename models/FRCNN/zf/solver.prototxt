@@ -1,4 +1,4 @@
-train_net: "models/FRCNN/zf/train.prototxt"
+train_net: "models/FRCNN/zf/train_val.prototxt"
 
 base_lr: 0.001
 lr_policy: "step"
