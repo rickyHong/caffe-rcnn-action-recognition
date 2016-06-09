@@ -19,12 +19,12 @@ $BUILD --gpu $gpu \
        --default_c examples/FRCNN/config/voc_config.json \
        --image_root VOCdevkit/VOC2007/JPEGImages/ \
        --image_list examples/FRCNN/dataset/voc2007_test.txt \
-       --out_file examples/FRCNN/results/voc2007_test${pid}.frcnn \
+       --out_file examples/FRCNN/results/voc2007_test_zf_${pid}.frcnn \
        --max_per_image 100
 
 CAL_RECALL=examples/FRCNN/calculate_voc_ap.py
 
 python $CAL_RECALL  --gt examples/FRCNN/dataset/voc2007_test.txt \
-            --answer examples/FRCNN/results/voc2007_test${pid}.frcnn \
+            --answer examples/FRCNN/results/voc2007_test_zf_${pid}.frcnn \
             --diff examples/FRCNN/dataset/voc2007_test.difficult \
             --overlap 0.5

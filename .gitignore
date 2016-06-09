@@ -97,4 +97,7 @@ MANIFEST-*
 #Xuanyi Add
 examples/FRCNN_OLD/results/*.jpg
 examples/FRCNN_OLD/results/*.txt
+examples/FRCNN/results/*.frcnn
+examples/FRCNN/results/*.rpn
 examples/*.log
+examples/cifar10_resnet/cifar10_resnet56_train_val.proto
