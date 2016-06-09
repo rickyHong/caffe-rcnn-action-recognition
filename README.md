@@ -31,6 +31,12 @@ Using **sh example/FRCNN/train.sh**, the will start train voc2007 data using ZF 
 
 More details in the code.
 
+### Commands, Rebase From Caffe Master
+
+- git remote add caffe https://github.com/BVLC/caffe.git
+- git fetch caffe
+- git rebase caffe/master
+
 # Caffe
 
 [![Build Status](https://travis-ci.org/BVLC/caffe.svg?branch=master)](https://travis-ci.org/BVLC/caffe)
